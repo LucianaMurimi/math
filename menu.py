@@ -1,5 +1,4 @@
-import pygame
-from globals import *
+from spritesheet import *
 
 
 class Menu(object):
@@ -24,13 +23,12 @@ class Menu(object):
             height = size[1]
 
             # top-left coordinates of the menu_items
-            posX = (SCREEN_WIDTH / 2) - (width / 2)
+            pos_x = (SCREEN_WIDTH / 2) - (width / 2)
             total_height = len(menu_items) * height
-            posY = (SCREEN_HEIGHT / 2) - (total_height / 2) + (index * 1.2 * height)
+            pos_y = (SCREEN_HEIGHT / 2) - (total_height / 2) + (index * 1.2 * height)
 
-            # rects
-            rect = pygame.Rect(posX, posY, width, height)
             # append rect to the list
+            rect = pygame.Rect(pos_x, pos_y, width, height)
             rect_list.append(rect)
 
         return rect_list
@@ -45,11 +43,11 @@ class Menu(object):
             height = label.get_height()
 
             # top-left coordinates of the menu_items
-            posX = (SCREEN_WIDTH / 2) - (width / 2)
+            pos_x = (SCREEN_WIDTH / 2) - (width / 2)
             total_height = len(self.menu_items) * height
-            posY = (SCREEN_HEIGHT / 2) - (total_height / 2) + (index * 1.2 * height)
+            pos_y = (SCREEN_HEIGHT / 2) - (total_height / 2) + (index * 1.2 * height)
 
-            screen.blit(label, (posX, posY))
+            screen.blit(label, (pos_x, pos_y))
 
     def collide_points(self):
         index = -1
@@ -62,4 +60,3 @@ class Menu(object):
     def update(self):
         # assign collide_points to state
         self.state = self.collide_points()
-

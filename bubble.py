@@ -6,9 +6,10 @@ from globals import *
 class Bubbles(pygame.sprite.Sprite):
     def __init__(self):
         super(Bubbles, self).__init__()
-        self.surf = pygame.image.load("bubbles.png").convert()
-        self.surf.set_colorkey((0, 0, 0), pygame.RLEACCEL)
-        # The starting position is randomly generated
+        self.surf = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
+        self.surf = pygame.image.load("./assets/images/bubbles/bubble-64px.png").convert_alpha()
+
+        # starting position is randomly generated
         self.rect = self.surf.get_rect(
             center=(
                 random.randint(SCREEN_WIDTH + 20, SCREEN_WIDTH + 100),
@@ -16,8 +17,8 @@ class Bubbles(pygame.sprite.Sprite):
             )
         )
 
-    # Move the cloud based on a constant speed
-    # Remove the cloud when it passes the left edge of the screen
+    # move the bubbles at constant speed
+    # remove the bubble when it passes the left edge of the screen
     def update(self):
         self.rect.move_ip(-5, 0)
         if self.rect.right < 0:
