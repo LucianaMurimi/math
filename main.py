@@ -24,6 +24,6 @@ while running:
     game.run_logic()
     game.display_frame(screen)
 
-    clock.tick(30)
+    clock.tick(15)
 
 pygame.quit()

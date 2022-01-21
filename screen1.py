@@ -1,9 +1,10 @@
 import pygame
 from globals import *
+from swim import *
 
 
 class ScreenOne:
-    def __init__(self, ttf_font="./assets/fonts/Sniglet.ttf", font_size=42):
+    def __init__(self, ttf_font="./assets/fonts/Sniglet.ttf", font_size=64):
         self.font = pygame.font.Font(ttf_font, font_size)
 
     def display_screen_one(self, screen):
@@ -29,7 +30,7 @@ class ScreenOne:
         pos_x4 = pos_x3 + width3
         pos_x5 = pos_x4 + width4
         pos_x6 = pos_x5 + width5
-        pos_y = (SCREEN_HEIGHT / 2) - (height / 2)
+        pos_y = (SCREEN_HEIGHT / 2) - (height / 2) - 40
 
         screen.blit(label1, (pos_x1, pos_y))
         screen.blit(label2, (pos_x2, pos_y))
@@ -39,6 +40,6 @@ class ScreenOne:
         screen.blit(label6, (pos_x6, pos_y))
 
         pygame.display.flip()
-        pygame.time.wait(1000)
+
         return False
 

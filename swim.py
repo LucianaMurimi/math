@@ -23,7 +23,9 @@ class Swim(pygame.sprite.Sprite):
         self.image = self.images[self.index]
 
         # creating a rect at position x,y (5,5) of size (150,198) which is the size of sprite
-        self.rect = pygame.Rect(50, 50, 100, 100)
+        self.rect = pygame.Rect(50, 250, 100, 100)
+
+        self.mask = pygame.mask.from_surface(self.image)
 
     def update(self):
         # when the update method is called, we will increment the index
@@ -36,6 +38,7 @@ class Swim(pygame.sprite.Sprite):
 
         # finally we will update the image that will be displayed
         self.image = self.images[self.index]
+        return self.index
 
     def move(self, pressed_key):
         if pressed_key[K_UP]:
@@ -56,6 +59,15 @@ class Swim(pygame.sprite.Sprite):
             self.rect.top = 0
         if self.rect.bottom >= SCREEN_HEIGHT:
             self.rect.bottom = SCREEN_HEIGHT
+
+    def swim_right(self, swim):
+        if swim:
+            if self.rect.x == 265:
+                return False
+            else:
+                self.rect.move_ip(5, 0)
+                return True
+
 
 
 

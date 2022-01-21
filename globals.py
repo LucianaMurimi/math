@@ -5,6 +5,8 @@ SCREEN_HEIGHT = 480
 BG_X = 0
 INDEX = 0
 
+TICKS = 0
+
 # Colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)

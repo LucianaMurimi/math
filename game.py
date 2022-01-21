@@ -9,6 +9,7 @@ from spritesheet import *
 from bubble import *
 from screen1 import *
 from swim import *
+from burst import *
 
 
 pygame.init()
@@ -17,14 +18,18 @@ pygame.init()
 background = Background()
 player = Player()
 swim = Swim()
+burst = Burst()
 spritesheet = Spritesheet("./assets/images/bubbles/bubble_burst.png", 3, 3)
 
 # SPRITE GROUPS
 all_sprites = pygame.sprite.Group()
 all_sprites.add(player)
 
-swimming = pygame.sprite.Group(swim)
-# swimming.add(swim)
+swimming = pygame.sprite.Group()
+swimming.add(swim)
+
+bursting = pygame.sprite.Group()
+bursting.add(burst)
 
 enemies = pygame.sprite.Group()
 bubbles = pygame.sprite.Group()
@@ -33,7 +38,7 @@ bubbles = pygame.sprite.Group()
 class Game:
     # CUSTOM EVENTS
     ADDbubble = pygame.USEREVENT + 1
-    pygame.time.set_timer(ADDbubble, 1000)
+    pygame.time.set_timer(ADDbubble, 5000)
 
     def __init__(self):
         # menu
@@ -72,6 +77,7 @@ class Game:
         # sound effects
         self.sound_1 = pygame.mixer.Sound("./assets/audio/item1.ogg")
         self.sound_2 = pygame.mixer.Sound("./assets/audio/item2.ogg")
+        self.bubble_burst = pygame.mixer.Sound("./assets/audio/bubble_burst.mp3")
 
     def process_events(self, screen):
         # EVENTS
@@ -126,10 +132,18 @@ class Game:
                 bubbles.add(new_bubble)
                 all_sprites.add(new_bubble)
 
-            if pygame.sprite.spritecollideany(player, enemies):
-                #
-                player.kill()
-                return False
+            # if pygame.sprite.groupcollide(swimming, bursting, False, False):
+            #     # pygame.time.wait(1000)
+            #     return False
+            # if pygame.sprite.spritecollideany(swim, enemies, pygame.sprite.collide_mask):
+            #
+            #     self.bubble_burst.play()
+            #     bursting.update()
+                # pygame.time.wait(1000)
+                # player.kill()
+                # return False
+                # if self.display_screen_one:
+                #     self.display_screen_one = False
 
         pressed_key = pygame.key.get_pressed()
         player.update(pressed_key)
@@ -306,15 +320,34 @@ class Game:
 
         # screen 1
         if self.display_screen_one:
-            self.display_screen_one = self.screen_one.display_screen_one(screen)
+            self.screen_one.display_screen_one(screen)
+            is_swimming = swim.swim_right(True)
+            if is_swimming:
+                swimming.draw(screen)
+                swimming.update()
+            else:
+                self.bubble_burst.play()
+                bursting.update()
+                bursting.draw(screen)
+
+            bursting.draw(screen)
+
+            global TICKS
+            TICKS = pygame.time.get_ticks()
+            if TICKS > 3800:
+                self.display_screen_one = False
 
         # screen 2
         elif self.display_screen_two:
             self.screen_two.display_frame(screen)
+            bubbles.update()
+            for entity in all_sprites:
+                screen.blit(entity.surf, entity.rect)
 
         # 1. Show menu
         elif self.show_menu:
             self.menu.display_frame(screen)
+
 
         # 2. Game Over Screen
         elif self.count == 3:
@@ -353,13 +386,11 @@ class Game:
             score_label = self.score_font.render("Score : " + str(self.score), True, (15, 157, 8))
             screen.blit(score_label, (SCREEN_WIDTH - score_label.get_width() - 20, 10))
 
-            bubbles.update()
+            # bubbles.update()
             swimming.update()
             swimming.draw(screen)
             # draw all sprites
             # for entity in all_sprites:
-            #     screen.blit(entity.surf, entity.rect)
-            # for entity in swimming:
             #     screen.blit(entity.surf, entity.rect)
 
             # screen.blit(player.image, player.rect)

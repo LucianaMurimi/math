@@ -19,10 +19,13 @@ class Button(pygame.sprite.Sprite):
         self.background_color = SKY_BLUE
         self.check_background_color = False
 
+        # self.surf = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.image = pygame.image.load("./assets/images/bubbles/bubble.png").convert_alpha()
+
     def draw(self, screen):
         border_width = (3, 0)[self.check_background_color]
         color = ((254, 0, 154), self.background_color)[self.check_background_color]
-        pygame.draw.circle(screen, color, (self.x, self.y), self.radius, border_width)
+        # pygame.draw.circle(screen, color, (self.x, self.y), self.radius, border_width)
 
         # width and height of the text surface
         width = self.text.get_width()
@@ -31,6 +34,7 @@ class Button(pygame.sprite.Sprite):
         pos_x = self.rect.centerx - (width / 2)
         pos_y = self.rect.centery - (height / 2)
         # draw the text(numbers) onto the buttons
+        screen.blit(self.image, self.rect)
         screen.blit(self.text, (pos_x, pos_y))
 
     def isPressed(self):
