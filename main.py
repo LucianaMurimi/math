@@ -2,7 +2,6 @@ import pygame
 from globals import *
 from game import Game
 
-
 pygame.init()
 
 # default display

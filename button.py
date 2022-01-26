@@ -1,5 +1,6 @@
 import pygame
 from globals import *
+from burst import *
 
 
 class Button(pygame.sprite.Sprite):
@@ -8,6 +9,7 @@ class Button(pygame.sprite.Sprite):
         # (x, y) -> center coordinates of the circle
         self.x = x + (width / 2)
         self.y = y + (height / 2)
+
         self.radius = width / 2
 
         self.rect = pygame.Rect(x, y, width, height)
@@ -20,7 +22,12 @@ class Button(pygame.sprite.Sprite):
         self.check_background_color = False
 
         # self.surf = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        self.image = pygame.image.load("./assets/images/bubbles/bubble.png").convert_alpha()
+        self.image = pygame.image.load("./assets/images/bubbles/bubble-64px.png").convert_alpha()
+
+        #
+        self.burst = Burst(x, y)
+        self.bursting = pygame.sprite.Group()
+        self.bursting.add(self.burst)
 
     def draw(self, screen):
         border_width = (3, 0)[self.check_background_color]
@@ -34,7 +41,8 @@ class Button(pygame.sprite.Sprite):
         pos_x = self.rect.centerx - (width / 2)
         pos_y = self.rect.centery - (height / 2)
         # draw the text(numbers) onto the buttons
-        screen.blit(self.image, self.rect)
+        # screen.blit(self.image, self.rect)
+        self.bursting.draw(screen)
         screen.blit(self.text, (pos_x, pos_y))
 
     def isPressed(self):
@@ -53,3 +61,4 @@ class Button(pygame.sprite.Sprite):
     def get_number(self):
         # return the number of the button
         return self.number
+

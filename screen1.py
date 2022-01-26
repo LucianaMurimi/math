@@ -4,7 +4,7 @@ from swim import *
 
 
 class ScreenOne:
-    def __init__(self, ttf_font="./assets/fonts/Sniglet.ttf", font_size=64):
+    def __init__(self, ttf_font="./assets/fonts/Sniglet-ExtraBold.ttf", font_size=64):
         self.font = pygame.font.Font(ttf_font, font_size)
 
     def display_screen_one(self, screen):

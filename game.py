@@ -3,7 +3,6 @@ from pygame.locals import *
 import random
 from bg import *
 from menu import Menu
-from player import Player
 from button import Button
 from spritesheet import *
 from bubble import *
@@ -16,17 +15,18 @@ pygame.init()
 
 # OBJECTS
 background = Background()
-player = Player()
 swim = Swim()
-burst = Burst()
+screen1_swim = Swim()
+burst = Burst(SCREEN_WIDTH / 2, 278)
 spritesheet = Spritesheet("./assets/images/bubbles/bubble_burst.png", 3, 3)
 
 # SPRITE GROUPS
 all_sprites = pygame.sprite.Group()
-all_sprites.add(player)
-
 swimming = pygame.sprite.Group()
 swimming.add(swim)
+
+screen1_swimming = pygame.sprite.Group()
+screen1_swimming.add(screen1_swim)
 
 bursting = pygame.sprite.Group()
 bursting.add(burst)
@@ -42,27 +42,30 @@ class Game:
 
     def __init__(self):
         # menu
-        self.menu = Menu(("Addition", "Subtraction", "Multiplication", "Division"),
-                         ttf_font="./assets/fonts/RosewellBlackRGH.otf", font_size=42)
+        self.menu = Menu(("Addition", "Subtraction", "Multiplication"),
+                         ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=64)
         self.show_menu = True
 
         self.screen_one = ScreenOne()
         self.display_screen_one = True
 
         self.screen_two = Menu(("Level 1", "Level 2"),
-                         ttf_font="./assets/fonts/Sniglet.ttf", font_size=42)
+                         ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=64)
         self.display_screen_two = True
 
+        self.shell_menu = Menu(("Sign In", "Back", "Exit"), ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=64)
+        self.shell_menu_check = False
+
         # font
-        self.font = pygame.font.Font(None, 64)
+        self.font = pygame.font.Font("./assets/fonts/Sniglet-Regular.ttf", 42)
         self.score_font = pygame.font.Font("./assets/fonts/RosewellBlackRGH.otf", 20)
 
         # dictionary with keys: num1, num2, result
         # variables for creating the arithmetic problem
         self.problem = {"num1": 0, "num2": 0, "result": 0}
+        self.symbols = {"addition": " + ", "subtraction": " - ", "multiplication": " x "}
         # variable for name of operation
         self.operation = ""
-        self.symbols = self.get_symbols()
         self.button_list = self.get_button_list()
 
         self.reset_problem = False
@@ -72,7 +75,9 @@ class Game:
         # counter for the number of problems
         self.count = 0
 
-        self.pressed_keys = pygame.key.get_pressed()
+        self.shell_image = pygame.image.load("./assets/images/menu_img.png").convert_alpha()
+
+        self.shell_rect = pygame.Rect(SCREEN_WIDTH - 64 - 36, 24, 72, 72)
 
         # sound effects
         self.sound_1 = pygame.mixer.Sound("./assets/audio/item1.ogg")
@@ -117,39 +122,31 @@ class Game:
                 else:
                     self.check_result()
 
-            # if event.type == pygame.KEYDOWN:
-            #     if event.key == pygame.K_ESCAPE:
-            #         self.show_menu = True
-            #         self.score = 0
-            #         self.count = 0
-            #
-            #     else:
-            #         player.update(event.key)
+                if not self.show_menu and self.shell_rect.collidepoint(pygame.mouse.get_pos()):
+                    self.shell_menu_check = not self.shell_menu_check
 
             if event.type == self.ADDbubble:
-                # create the new enemy and add it to sprite groups
+                # create the new bubble and add it to sprite groups
                 new_bubble = Bubbles()
                 bubbles.add(new_bubble)
                 all_sprites.add(new_bubble)
 
-            # if pygame.sprite.groupcollide(swimming, bursting, False, False):
-            #     # pygame.time.wait(1000)
-            #     return False
-            # if pygame.sprite.spritecollideany(swim, enemies, pygame.sprite.collide_mask):
-            #
-            #     self.bubble_burst.play()
-            #     bursting.update()
-                # pygame.time.wait(1000)
-                # player.kill()
-                # return False
-                # if self.display_screen_one:
-                #     self.display_screen_one = False
+            # enemyCollisions = pygame.sprite.spritecollide(swim, enemies, True, False)
+            enemy_collisions = pygame.sprite.spritecollide(swim, enemies, pygame.sprite.collide_mask)
+            for enemy in enemy_collisions:
+                print(enemy.number)
+                enemy.bursting.update()
+                enemy.bursting.draw(screen)
 
         pressed_key = pygame.key.get_pressed()
-        player.update(pressed_key)
-
-        swim.move(pressed_key)
-        swimming.draw(screen)
+        if pressed_key[K_ESCAPE]:
+            self.show_menu = True
+            self.score = 0
+            self.count = 0
+            self.shell_menu_check = False
+        else:
+            swim.move(pressed_key)
+            swimming.draw(screen)
 
         return True
 
@@ -284,31 +281,6 @@ class Game:
                 # set reset_problem True so it can go to the next problem
                 self.reset_problem = True
 
-    def get_symbols(self):
-        """ Return a dictionary with all the operation symbols """
-        symbols = {}
-        sprite_sheet = pygame.image.load("./assets/images/symbols.png").convert()
-        image = self.get_image(sprite_sheet, 0, 0, 64, 64)
-        symbols["addition"] = image
-        image = self.get_image(sprite_sheet, 64, 0, 64, 64)
-        symbols["subtraction"] = image
-        image = self.get_image(sprite_sheet, 128, 0, 64, 64)
-        symbols["multiplication"] = image
-        image = self.get_image(sprite_sheet, 192, 0, 64, 64)
-        symbols["division"] = image
-
-        return symbols
-
-    def get_image(self, sprite_sheet, x, y, width, height):
-        """ This method will cut an image and return it """
-        # Create a new blank image
-        image = pygame.Surface([width, height]).convert()
-        image.set_colorkey((255, 255, 255))
-        # Copy the sprite from the large sheet onto the smaller
-        image.blit(sprite_sheet, (0, 0), (x, y, width, height))
-        # Return the image
-        return image
-
     def run_logic(self):
         # update menu
         self.menu.update()
@@ -321,10 +293,10 @@ class Game:
         # screen 1
         if self.display_screen_one:
             self.screen_one.display_screen_one(screen)
-            is_swimming = swim.swim_right(True)
+            is_swimming = screen1_swim.swim_right(True)
             if is_swimming:
-                swimming.draw(screen)
-                swimming.update()
+                screen1_swimming.draw(screen)
+                screen1_swimming.update()
             else:
                 self.bubble_burst.play()
                 bursting.update()
@@ -334,7 +306,7 @@ class Game:
 
             global TICKS
             TICKS = pygame.time.get_ticks()
-            if TICKS > 3800:
+            if TICKS > 3600:
                 self.display_screen_one = False
 
         # screen 2
@@ -347,7 +319,6 @@ class Game:
         # 1. Show menu
         elif self.show_menu:
             self.menu.display_frame(screen)
-
 
         # 2. Game Over Screen
         elif self.count == 3:
@@ -367,40 +338,39 @@ class Game:
         else:
             # labels for each number
             label_1 = self.font.render(str(self.problem["num1"]), True, BLACK)
-            label_2 = self.font.render(str(self.problem["num2"]) + " = ?", True, BLACK)
+            label_2 = self.font.render(self.symbols[self.operation], True, BLACK)
+            label_3 = self.font.render(str(self.problem["num2"]) + " = ?", True, BLACK)
 
             # center the equation
             # t_w: total width
-            t_w = label_1.get_width() + label_2.get_width() + 64  # 64: length of symbol
+            t_w = label_1.get_width() + label_2.get_width() + label_3.get_width()  # 64: length of symbol
             pos_x = (SCREEN_WIDTH / 2) - (t_w / 2)
 
             screen.blit(label_1, (pos_x, 50))
-            screen.blit(self.symbols[self.operation], (pos_x + label_1.get_width(), 40))
-            screen.blit(label_2, (pos_x + label_1.get_width() + 64, 50))
+            screen.blit(label_2, (pos_x + label_1.get_width(), 50))
+            screen.blit(label_3, (pos_x + label_1.get_width() + label_2.get_width(), 50))
 
             # buttons
             for btn in self.button_list:
                 btn.draw(screen)
 
             # score
-            score_label = self.score_font.render("Score : " + str(self.score), True, (15, 157, 8))
-            screen.blit(score_label, (SCREEN_WIDTH - score_label.get_width() - 20, 10))
+            # score_label = self.score_font.render("Score : " + str(self.score), True, (15, 157, 8))
+            # screen.blit(score_label, (SCREEN_WIDTH - score_label.get_width() - 20, 10))
+
+            screen.blit(self.shell_image, (SCREEN_WIDTH - 64 - 36, 24))
 
             # bubbles.update()
             swimming.update()
             swimming.draw(screen)
-            # draw all sprites
-            # for entity in all_sprites:
-            #     screen.blit(entity.surf, entity.rect)
-
-            # screen.blit(player.image, player.rect)
-
-            # sprites
-            # global INDEX
-            # spritesheet.draw(screen, INDEX % spritesheet.total_cell_count, 400, 230, 4)
-            # INDEX += 1
 
             pygame.display.update()
+
+            if self.shell_menu_check:
+                background.set_background(screen, True)
+                self.shell_menu.display_frame(screen)
+                pygame.display.update()
+
         pygame.display.flip()
 
         # --- this is for the game to wait a few seconds to be able to show

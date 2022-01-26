@@ -3,7 +3,7 @@ from spritesheet import *
 
 class Menu(object):
     state = -1
-    text_colors = [(255, 0, 0), (15, 157, 8), (254, 0, 154), (244, 160, 0)]
+    text_colors = [(254, 0, 154), (15, 157, 8), (244, 160, 0)]
     select_color = (128, 85, 51)
 
     def __init__(self, menu_items, ttf_font=None, font_size=24):

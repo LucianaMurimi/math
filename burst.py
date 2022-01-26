@@ -4,12 +4,12 @@ from globals import *
 
 
 class Burst(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, x, y):
         super(Burst, self).__init__()
         # adding all the images to sprite array
         self.images = []
-        # self.images.append(pygame.image.load('./assets/images/bubbles/bubble-100px.png'))
-        self.images.append(pygame.image.load('./assets/images/bubbles/bubble_64px.png'))
+        self.images.append(pygame.image.load('./assets/images/bubbles/bubble.png'))
+        # self.images.append(pygame.image.load('./assets/images/bubbles/bubble_64px.png'))
         self.images.append(pygame.image.load('./assets/images/bubbles/bubble_pop_2.png'))
         # self.images.append(pygame.image.load('./assets/images/bubbles/bubble_pop_3.png'))
         self.images.append(pygame.image.load('./assets/images/bubbles/bubble_pop_4.png'))
@@ -24,8 +24,8 @@ class Burst(pygame.sprite.Sprite):
 
         # now the image that we will display will be the index from the image array
         self.image = self.images[self.index]
-        self.x = SCREEN_WIDTH / 2 - 32
-        self.y = 278
+        self.x = x
+        self.y = y
         # creating a rect at position x,y (5,5) of size (150,198) which is the size of sprite
         self.rect = pygame.Rect(self.x, self.y, 100, 100)
 
@@ -40,9 +40,8 @@ class Burst(pygame.sprite.Sprite):
             # we will make the index to 0 again
             self.index = 0
 
-        # finally we will update the image that will be displayed
+        # finally, update the image that will be displayed
         self.image = self.images[self.index]
-
 
         return self.index
 
