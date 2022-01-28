@@ -8,11 +8,11 @@ class ScreenOne:
         self.font = pygame.font.Font(ttf_font, font_size)
 
     def display_screen_one(self, screen):
-        label1 = self.font.render("Ma", True, (255, 0, 0))
-        label2 = self.font.render("th", True, (15, 157, 8))
-        label3 = self.font.render("Bu", True, (254, 0, 154))
-        label4 = self.font.render("bb", True, (244, 160, 0))
-        label5 = self.font.render("le", True, (128, 85, 51))
+        label1 = self.font.render("Ma", True, (255, 36, 0))
+        label2 = self.font.render("th", True, (255, 165, 0))
+        label3 = self.font.render("Bu", True, (255, 255, 0))
+        label4 = self.font.render("bb", True, (15, 157, 8))
+        label5 = self.font.render("le", True, (254, 0, 154))
         label6 = self.font.render("s", True, (255, 255, 255))
 
         width1 = label1.get_width()

@@ -1,10 +1,11 @@
-from spritesheet import *
+import pygame
+from globals import *
 
 
 class Menu(object):
     state = -1
-    text_colors = [(254, 0, 154), (15, 157, 8), (244, 160, 0)]
-    select_color = (128, 85, 51)
+    text_colors = [(254, 0, 154), (255, 165, 0), (255, 255, 0)]
+    select_color = (255, 255, 255)
 
     def __init__(self, menu_items, ttf_font=None, font_size=24):
         self.menu_items = menu_items

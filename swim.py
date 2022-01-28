@@ -23,7 +23,7 @@ class Swim(pygame.sprite.Sprite):
         self.image = self.images[self.index]
 
         # creating a rect at position x,y (5,5) of size (150,198) which is the size of sprite
-        self.rect = pygame.Rect(50, 250, 100, 100)
+        self.rect = pygame.Rect(50, 270, 100, 100)
 
         self.mask = pygame.mask.from_surface(self.image)
 
