@@ -5,24 +5,26 @@ from bg import *
 from menu import Menu
 from button import Button
 from bubble import *
-from screen1 import *
-from swim import *
+from screen_1 import *
+from sprite import *
 from burst import *
+from sign_in import *
 
 
 pygame.init()
 
 # OBJECTS
 background = Background()
-swim = Swim()
-screen1_swim = Swim()
+sprite = Sprite()
+screen1_swim = Sprite()
 burst = Burst(SCREEN_WIDTH / 2, 270)
+sign_in = SignIn()
 
 # SPRITE GROUPS
 all_sprites = pygame.sprite.Group()
 
-swimming = pygame.sprite.Group()
-swimming.add(swim)
+sprite_group = pygame.sprite.Group()
+sprite_group.add(sprite)
 
 screen1_swimming = pygame.sprite.Group()
 screen1_swimming.add(screen1_swim)
@@ -55,6 +57,8 @@ class Game:
         self.shell_menu = Menu(("SIGN IN", "BACK", "EXIT"), ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=42)
         self.shell_menu_check = False
 
+        self.display_sign_in = False
+
         # font
         self.font = pygame.font.Font("./assets/fonts/Sniglet-Regular.ttf", 42)
         self.score_font = pygame.font.Font("./assets/fonts/RosewellBlackRGH.otf", 20)
@@ -82,6 +86,8 @@ class Game:
         self.sound_1 = pygame.mixer.Sound("./assets/audio/item1.ogg")
         self.sound_2 = pygame.mixer.Sound("./assets/audio/item2.ogg")
         self.bubble_burst = pygame.mixer.Sound("./assets/audio/bubble_burst.mp3")
+
+        self.username = ""
 
     def process_events(self, screen):
         # EVENTS
@@ -116,6 +122,20 @@ class Game:
                         self.operation = "division"
                         self.set_problem()
                         self.show_menu = False
+                elif self.shell_menu_check:
+                    if self.shell_menu.state == 0:
+                        self.display_sign_in = not self.display_sign_in
+                        pygame.display.update()
+                    elif self.shell_menu.state == 1:
+                        print("1")
+                for btn in sign_in.button_sign_in_list:
+                    if btn.isPressed():
+                        global USERNAME
+                        print(btn.get_btn_value())
+                        self.username = self.username + btn.get_btn_value()
+                        screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
+                        screen.fill(SKY_BLUE)
+                        self.display_frame(screen)
 
                 # 3. CHECK RESULT
                 else:
@@ -131,7 +151,7 @@ class Game:
                 all_sprites.add(new_bubble)
 
             # enemyCollisions = pygame.sprite.spritecollide(swim, enemies, True, False)
-            enemy_collisions = pygame.sprite.spritecollide(swim, enemies, pygame.sprite.collide_mask)
+            enemy_collisions = pygame.sprite.spritecollide(sprite, enemies, pygame.sprite.collide_mask)
             for enemy in enemy_collisions:
                 print(enemy.number)
                 enemy.bursting.update()
@@ -149,8 +169,9 @@ class Game:
             self.count = 0
             self.shell_menu_check = False
         else:
-            swim.move(pressed_key)
-            swimming.draw(screen)
+            sprite.swim(pressed_key)
+            sprite_group.draw(screen)
+
 
         return True
 
@@ -195,14 +216,6 @@ class Game:
         self.problem["result"] = a * b
         self.operation = "multiplication"
 
-    def division(self):
-        divisor = random.randint(1, 12)
-        dividend = divisor * random.randint(1, 12)
-        quotient = dividend / divisor
-        self.problem["num1"] = dividend
-        self.problem["num2"] = divisor
-        self.problem["result"] = quotient
-        self.operation = "division"
     #######################################################
 
     def get_button_list(self):
@@ -289,10 +302,20 @@ class Game:
         # update menu
         self.menu.update()
         self.screen_two.update()
+        self.shell_menu.update()
 
     def display_frame(self, screen):
         background.set_background(screen, self.show_menu)
         time_wait = False
+
+        # for btn in sign_in.button_sign_in_list:
+        #     if btn.isPressed():
+        #         global USERNAME
+        #         print(btn.get_btn_value())
+        #         print(USERNAME)
+        #         sign_in.display_sign_in(pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT]), btn.get_btn_value())
+        #
+        #         pygame.display.flip()
 
         # screen 1
         if self.display_screen_one:
@@ -347,15 +370,23 @@ class Game:
             # set time_wait True to wait 3 seconds
             time_wait = True
 
+        elif self.display_sign_in:
+            background.set_background(screen, "menu")
+            time_wait = False
+
+            sign_in.display_sign_in(screen, self.username)
+            # for btn in sign_in.button_sign_in_list:
+            #     if btn.isPressed():
+            #         print("Luchi")
         # 3. Math Problem Screen
         else:
             # labels for each number
-            label_1 = self.font.render(str(self.problem["num1"]), True, (0, 0, 128))
-            label_2 = self.font.render(self.symbols[self.operation], True, (254, 0, 154))
-            label_3 = self.font.render(str(self.problem["num2"]), True, (0, 0, 128))
-            label_4 = self.font.render("  =  ", True, (242, 232, 213))
+            label_1 = self.font.render(str(self.problem["num1"]), True, (127, 81, 0))
+            label_2 = self.font.render(self.symbols[self.operation], True, (255, 255, 0))
+            label_3 = self.font.render(str(self.problem["num2"]), True, (0, 122, 78))
+            label_4 = self.font.render("  =  ", True, (254, 0, 154))
 
-            label_5 = self.font.render("?", True, (128, 0, 32))
+            label_5 = self.font.render("?", True, (242, 232, 213))
 
 
             # center the equation
@@ -373,15 +404,11 @@ class Game:
             for btn in self.button_list:
                 btn.draw(screen)
 
-            # score
-            # score_label = self.score_font.render("Score : " + str(self.score), True, (15, 157, 8))
-            # screen.blit(score_label, (SCREEN_WIDTH - score_label.get_width() - 20, 10))
-
             screen.blit(self.shell_image, (SCREEN_WIDTH - 64 - 36, 24))
 
             # bubbles.update()
-            swimming.update()
-            swimming.draw(screen)
+            sprite_group.update()
+            sprite_group.draw(screen)
 
             pygame.display.update()
 
@@ -391,6 +418,8 @@ class Game:
 
                 self.shell_menu.display_frame(screen)
                 pygame.display.update()
+
+
 
         pygame.display.flip()
 

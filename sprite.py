@@ -3,9 +3,9 @@ from pygame.locals import *
 from globals import *
 
 
-class Swim(pygame.sprite.Sprite):
+class Sprite(pygame.sprite.Sprite):
     def __init__(self):
-        super(Swim, self).__init__()
+        super(Sprite, self).__init__()
         # adding all the images to sprite array
         self.images = []
         self.images.append(pygame.image.load('./assets/images/swim_to_right/1.png'))
@@ -40,7 +40,7 @@ class Swim(pygame.sprite.Sprite):
         self.image = self.images[self.index]
         return self.index
 
-    def move(self, pressed_key):
+    def swim(self, pressed_key):
         if pressed_key[K_UP]:
             self.rect.move_ip(0, -5)
         if pressed_key[K_DOWN]:

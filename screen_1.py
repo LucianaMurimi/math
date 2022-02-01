@@ -1,6 +1,6 @@
 import pygame
 from globals import *
-from swim import *
+from sprite import *
 
 
 class ScreenOne:

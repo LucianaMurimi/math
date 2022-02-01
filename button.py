@@ -12,11 +12,11 @@ class Button(pygame.sprite.Sprite):
 
         self.radius = width / 2
 
-        self.text_color = (128, 0, 32)
+        self.text_color = (117, 0, 92)
 
         self.rect = pygame.Rect(x, y, width, height)
 
-        self.font = pygame.font.Font(None, 48)
+        self.font = pygame.font.Font("./assets/fonts/Sniglet-Regular.ttf", 36)
         self.text = self.font.render(str(number), True, self.text_color)
         self.number = number
 
