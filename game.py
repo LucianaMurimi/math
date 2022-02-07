@@ -43,6 +43,7 @@ class Game:
 
     def __init__(self):
         # menu
+        self.menu_key_press = None
         self.menu = Menu(("Addition", "Subtraction", "Multiplication"),
                          ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=56)
         self.show_menu = True
@@ -92,37 +93,77 @@ class Game:
     def process_events(self, screen):
         # EVENTS
         for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if self.display_screen_two:
+                    if event.key == pygame.K_DOWN:
+                        self.screen_two.update(key_press=pygame.K_DOWN, options=1)
+                        self.menu_key_press = pygame.K_DOWN
+                        pygame.display.flip()
+                    elif event.key == pygame.K_UP:
+                        self.screen_two.update(key_press=pygame.K_UP, options=1)
+                        pygame.display.flip()
+                        self.menu_key_press = pygame.K_UP
+
+                    elif event.key == pygame.K_KP_ENTER:
+                        if self.screen_two.state == 0:
+                            self.display_screen_two = False
+                            pygame.time.wait(500)
+                        elif self.screen_two.state == 1:
+                            self.display_screen_two = False
+                            pygame.time.wait(500)
+
+                if self.show_menu:
+                    if event.key == pygame.K_DOWN:
+                        self.menu.update(key_press=pygame.K_DOWN, options=2)
+                        pygame.display.flip()
+                    elif event.key == pygame.K_UP:
+                        self.menu.update(key_press=pygame.K_UP, options=2)
+                        pygame.display.flip()
+
+                    elif event.key == pygame.K_KP_ENTER:
+                        if self.menu.state == 0:
+                            self.operation = "addition"
+                            self.set_problem()
+                            self.show_menu = False
+                        elif self.menu.state == 1:
+                            self.operation = "subtraction"
+                            self.set_problem()
+                            self.show_menu = False
+                        elif self.menu.state == 2:
+                            self.operation = "multiplication"
+                            self.set_problem()
+                            self.show_menu = False
+
             # 1. quit game on EXIT
             if event.type == pygame.QUIT:
                 return False
-
             if event.type == pygame.MOUSEBUTTONDOWN:
                 # 2. MENU Window - SELECT Operation
-                if self.display_screen_two:
-                    if self.screen_two.state == 0:
-                        self.display_screen_two = False
-                        pygame.time.wait(500)
-                    elif self.screen_two.state == 1:
-                        self.display_screen_two = False
-                        pygame.time.wait(500)
-                elif self.show_menu:
-                    if self.menu.state == 0:
-                        self.operation = "addition"
-                        self.set_problem()
-                        self.show_menu = False
-                    elif self.menu.state == 1:
-                        self.operation = "subtraction"
-                        self.set_problem()
-                        self.show_menu = False
-                    elif self.menu.state == 2:
-                        self.operation = "multiplication"
-                        self.set_problem()
-                        self.show_menu = False
-                    elif self.menu.state == 3:
-                        self.operation = "division"
-                        self.set_problem()
-                        self.show_menu = False
-                elif self.shell_menu_check:
+                # if self.display_screen_two:
+                #     if self.screen_two.state == 0:
+                #         self.display_screen_two = False
+                #         pygame.time.wait(500)
+                #     elif self.screen_two.state == 1:
+                #         self.display_screen_two = False
+                #         pygame.time.wait(500)
+                # elif self.show_menu:
+                #     if self.menu.state == 0:
+                #         self.operation = "addition"
+                #         self.set_problem()
+                #         self.show_menu = False
+                #     elif self.menu.state == 1:
+                #         self.operation = "subtraction"
+                #         self.set_problem()
+                #         self.show_menu = False
+                #     elif self.menu.state == 2:
+                #         self.operation = "multiplication"
+                #         self.set_problem()
+                #         self.show_menu = False
+                #     elif self.menu.state == 3:
+                #         self.operation = "division"
+                #         self.set_problem()
+                #         self.show_menu = False
+                if self.shell_menu_check:
                     if self.shell_menu.state == 0:
                         self.display_sign_in = not self.display_sign_in
                         pygame.display.update()
@@ -143,6 +184,10 @@ class Game:
 
                 if not self.show_menu and self.shell_rect.collidepoint(pygame.mouse.get_pos()):
                     self.shell_menu_check = not self.shell_menu_check
+
+            if event.type == pygame.K_ESCAPE:
+                self.menu.state = 0
+                print(self.menu.state)
 
             if event.type == self.ADDbubble:
                 # create the new bubble and add it to sprite groups
@@ -171,8 +216,6 @@ class Game:
         else:
             sprite.swim(pressed_key)
             sprite_group.draw(screen)
-
-
         return True
 
     def set_problem(self):
@@ -300,8 +343,8 @@ class Game:
 
     def run_logic(self):
         # update menu
-        self.menu.update()
-        self.screen_two.update()
+        # self.menu.update()
+        # self.screen_two.update(key_press=self.menu_key_press)
         self.shell_menu.update()
 
     def display_frame(self, screen):
@@ -357,7 +400,7 @@ class Game:
             self.menu.display_frame(screen)
 
         # 2. Game Over Screen
-        elif self.count == 3:
+        elif self.count == 45:
             # if the count gets to 3 that means that the game is over
             msg_1 = "You answered " + str(self.score / 5) + " correctly"
             msg_2 = "Your score was " + str(self.score)

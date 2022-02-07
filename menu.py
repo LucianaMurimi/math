@@ -56,8 +56,23 @@ class Menu(object):
         for i, rect in enumerate(self.rect_list):
             if rect.collidepoint(mouse_pos):
                 index = i
+
         return index
 
-    def update(self):
-        # assign collide_points to state
-        self.state = self.collide_points()
+    def update(self, key_press=False, options=None):
+        if not key_press:
+            # assign collide_points to state
+            self.state = self.collide_points()
+        elif key_press == pygame.K_DOWN:
+            if self.state >= options:
+                self.state = options
+            else:
+                self.state = self.state + 1
+        elif key_press == pygame.K_UP:
+            if self.state <= 0:
+                self.state = 0
+            else:
+                self.state = self.state - 1
+
+
+
