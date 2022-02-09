@@ -56,7 +56,7 @@ class SignIn:
                                     self.button_4, self.button_5, self.button_6, self.button_7, self.button_8,
                                     self.button_9]
 
-    def display_sign_in(self, screen, email_input = ""):
+    def display_sign_in(self, screen, email_input=""):
         email_label = self.font.render("Email: ", True, BLACK)
         passwd_label = self.font.render("Password: ", True, BLACK)
 

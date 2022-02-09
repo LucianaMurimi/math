@@ -9,6 +9,7 @@ class Background:
         self.bg_x = 0
         self.bg = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
         self.bg_image = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
+
         self.bg_image = pygame.image.load("./assets/images/underwater.png").convert()
         self.bg_menu = pygame.image.load("./assets/images/water_bg.jpg").convert()
 

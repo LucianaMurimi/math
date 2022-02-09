@@ -12,10 +12,6 @@ class Bubbles(pygame.sprite.Sprite):
 
         # starting position is randomly generated
         self.rect = self.surf.get_rect(
-            # center=(
-            #     random.randint(SCREEN_WIDTH + 20, SCREEN_WIDTH + 100),
-            #     random.randint(0, SCREEN_HEIGHT),
-            # )
             center=(
                 random.randint(100, SCREEN_WIDTH - 100),
                 random.randint(0, 0),
@@ -25,7 +21,6 @@ class Bubbles(pygame.sprite.Sprite):
     # move the bubbles at constant speed
     # remove the bubble when it passes the left edge of the screen
     def update(self):
-        # self.rect.move_ip(-5, 0)
         self.rect.move_ip(0, 5)
         if self.rect.right < 0:
             self.kill()

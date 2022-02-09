@@ -3,9 +3,9 @@ from pygame.locals import *
 from globals import *
 
 
-class Burst(pygame.sprite.Sprite):
+class BubbleSprite(pygame.sprite.Sprite):
     def __init__(self, x, y):
-        super(Burst, self).__init__()
+        super(BubbleSprite, self).__init__()
         # adding all the images to sprite array
         self.images = []
         self.images.append(pygame.image.load('./assets/images/bubbles/bubble.png'))

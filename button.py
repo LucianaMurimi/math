@@ -1,6 +1,6 @@
 import pygame
 from globals import *
-from burst import *
+from bubble_sprite import *
 
 
 class Button(pygame.sprite.Sprite):
@@ -27,7 +27,7 @@ class Button(pygame.sprite.Sprite):
         self.image = pygame.image.load("./assets/images/bubbles/bubble-64px.png").convert_alpha()
 
         #
-        self.burst = Burst(x, y)
+        self.burst = BubbleSprite(x, y)
         self.bursting = pygame.sprite.Group()
         self.bursting.add(self.burst)
 

@@ -1,5 +1,4 @@
 import pygame
-from globals import *
 from sprite import *
 
 

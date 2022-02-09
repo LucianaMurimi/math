@@ -1,13 +1,11 @@
 import pygame.key
-from pygame.locals import *
-import random
 from bg import *
 from menu import Menu
 from button import Button
 from bubble import *
 from screen_1 import *
 from sprite import *
-from burst import *
+from bubble_sprite import *
 from sign_in import *
 
 
@@ -16,8 +14,8 @@ pygame.init()
 # OBJECTS
 background = Background()
 sprite = Sprite()
-screen1_swim = Sprite()
-burst = Burst(SCREEN_WIDTH / 2, 270)
+screen1_sprite = Sprite()
+screen1_bubble_sprite = BubbleSprite(SCREEN_WIDTH / 2, 270)
 sign_in = SignIn()
 
 # SPRITE GROUPS
@@ -26,11 +24,11 @@ all_sprites = pygame.sprite.Group()
 sprite_group = pygame.sprite.Group()
 sprite_group.add(sprite)
 
-screen1_swimming = pygame.sprite.Group()
-screen1_swimming.add(screen1_swim)
+screen1_sprite_group = pygame.sprite.Group()
+screen1_sprite_group.add(screen1_sprite)
 
-bursting = pygame.sprite.Group()
-bursting.add(burst)
+screen1_bubble_sprite_group = pygame.sprite.Group()
+screen1_bubble_sprite_group.add(screen1_bubble_sprite)
 
 enemies = pygame.sprite.Group()
 bubbles = pygame.sprite.Group()
@@ -42,16 +40,15 @@ class Game:
     pygame.time.set_timer(ADDbubble, 5000)
 
     def __init__(self):
-        # menu
-        self.menu_key_press = None
-        self.menu = Menu(("Addition", "Subtraction", "Multiplication"),
-                         ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=56)
-        self.show_menu = True
-
         self.screen_one = ScreenOne()
         self.display_screen_one = True
 
-        self.screen_two = Menu(("Level 1", "Level 2"),
+        # menu
+        self.standard_two_menu = Menu(("Addition", "Subtraction", "Multiplication"),
+                         ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=56)
+        self.display_standard_two_menu = True
+
+        self.screen_two = Menu(("Standard 1", "Standard 2"),
                          ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=64)
         self.display_screen_two = True
 
@@ -64,6 +61,7 @@ class Game:
         self.font = pygame.font.Font("./assets/fonts/Sniglet-Regular.ttf", 42)
         self.score_font = pygame.font.Font("./assets/fonts/RosewellBlackRGH.otf", 20)
 
+        self.display_ASD_game_screen = True
         # dictionary with keys: num1, num2, result
         # variables for creating the arithmetic problem
         self.problem = {"num1": 0, "num2": 0, "result": 0}
@@ -80,7 +78,6 @@ class Game:
         self.count = 0
 
         self.shell_image = pygame.image.load("./assets/images/shell.png").convert_alpha()
-
         self.shell_rect = pygame.Rect(SCREEN_WIDTH - 64 - 36, 24, 72, 72)
 
         # sound effects
@@ -93,18 +90,47 @@ class Game:
     def process_events(self, screen):
         # EVENTS
         for event in pygame.event.get():
+            # 1. quit game on EXIT
+            if event.type == pygame.QUIT:
+                return False
+            #####################################################################
+            # 2. ESCAPE KEYPRESS -> redirects to previous screen
+            if event.type == pygame.K_ESCAPE:
+                self.menu.state = 0
+
+            #####################################################################
+            # 3. MOUSE PRESS events
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if not self.display_standard_two_menu and self.shell_rect.collidepoint(pygame.mouse.get_pos()):
+                    self.shell_menu_check = not self.shell_menu_check
+
+                if self.shell_menu_check:
+                    if self.shell_menu.state == 0:
+                        self.display_sign_in = not self.display_sign_in
+                        pygame.display.update()
+
+                if self.display_sign_in:
+                    for btn in sign_in.button_sign_in_list:
+                        if btn.isPressed():
+                            self.username = self.username + btn.get_btn_value()
+
+                            sign_in.display_sign_in(pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT]),
+                                                    self.username)
+                            pygame.display.flip()
+
+            #####################################################################
+            # 4. KEY DOWN events -> check what screen the key down events are occurring -> update accordingly
             if event.type == pygame.KEYDOWN:
+                # if SCREEN TWO - standard 1, standard 2
                 if self.display_screen_two:
                     if event.key == pygame.K_DOWN:
                         self.screen_two.update(key_press=pygame.K_DOWN, options=1)
-                        self.menu_key_press = pygame.K_DOWN
                         pygame.display.flip()
                     elif event.key == pygame.K_UP:
                         self.screen_two.update(key_press=pygame.K_UP, options=1)
                         pygame.display.flip()
-                        self.menu_key_press = pygame.K_UP
 
-                    elif event.key == pygame.K_KP_ENTER:
+                    elif event.key == pygame.K_KP_ENTER:    # enter either standard 1 or standard 2 level
                         if self.screen_two.state == 0:
                             self.display_screen_two = False
                             pygame.time.wait(500)
@@ -112,90 +138,39 @@ class Game:
                             self.display_screen_two = False
                             pygame.time.wait(500)
 
-                if self.show_menu:
+                # if STANDARD TWO MENU SCREEN - addition, subtraction, multiplication
+                if self.display_standard_two_menu:
                     if event.key == pygame.K_DOWN:
-                        self.menu.update(key_press=pygame.K_DOWN, options=2)
+                        self.standard_two_menu.update(key_press=pygame.K_DOWN, options=2)
                         pygame.display.flip()
                     elif event.key == pygame.K_UP:
-                        self.menu.update(key_press=pygame.K_UP, options=2)
+                        self.standard_two_menu.update(key_press=pygame.K_UP, options=2)
                         pygame.display.flip()
 
                     elif event.key == pygame.K_KP_ENTER:
-                        if self.menu.state == 0:
+                        if self.standard_two_menu.state == 0:
                             self.operation = "addition"
                             self.set_problem()
-                            self.show_menu = False
-                        elif self.menu.state == 1:
+                            self.display_standard_two_menu = False
+                        elif self.standard_two_menu.state == 1:
                             self.operation = "subtraction"
                             self.set_problem()
-                            self.show_menu = False
-                        elif self.menu.state == 2:
+                            self.display_standard_two_menu = False
+                        elif self.standard_two_menu.state == 2:
+                            print(self.standard_two_menu.state)
                             self.operation = "multiplication"
                             self.set_problem()
-                            self.show_menu = False
+                            self.display_standard_two_menu = False
 
-            # 1. quit game on EXIT
-            if event.type == pygame.QUIT:
-                return False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                # 2. MENU Window - SELECT Operation
-                # if self.display_screen_two:
-                #     if self.screen_two.state == 0:
-                #         self.display_screen_two = False
-                #         pygame.time.wait(500)
-                #     elif self.screen_two.state == 1:
-                #         self.display_screen_two = False
-                #         pygame.time.wait(500)
-                # elif self.show_menu:
-                #     if self.menu.state == 0:
-                #         self.operation = "addition"
-                #         self.set_problem()
-                #         self.show_menu = False
-                #     elif self.menu.state == 1:
-                #         self.operation = "subtraction"
-                #         self.set_problem()
-                #         self.show_menu = False
-                #     elif self.menu.state == 2:
-                #         self.operation = "multiplication"
-                #         self.set_problem()
-                #         self.show_menu = False
-                #     elif self.menu.state == 3:
-                #         self.operation = "division"
-                #         self.set_problem()
-                #         self.show_menu = False
-                if self.shell_menu_check:
-                    if self.shell_menu.state == 0:
-                        self.display_sign_in = not self.display_sign_in
-                        pygame.display.update()
-                    elif self.shell_menu.state == 1:
-                        print("1")
-                for btn in sign_in.button_sign_in_list:
-                    if btn.isPressed():
-                        global USERNAME
-                        print(btn.get_btn_value())
-                        self.username = self.username + btn.get_btn_value()
-                        screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
-                        screen.fill(SKY_BLUE)
-                        self.display_frame(screen)
-
-                # 3. CHECK RESULT
-                else:
-                    self.check_result()
-
-                if not self.show_menu and self.shell_rect.collidepoint(pygame.mouse.get_pos()):
-                    self.shell_menu_check = not self.shell_menu_check
-
-            if event.type == pygame.K_ESCAPE:
-                self.menu.state = 0
-                print(self.menu.state)
-
+            #####################################################################
+            # 5. ADDbubble Custom Event
             if event.type == self.ADDbubble:
                 # create the new bubble and add it to sprite groups
                 new_bubble = Bubbles()
                 bubbles.add(new_bubble)
-                all_sprites.add(new_bubble)
 
-            # enemyCollisions = pygame.sprite.spritecollide(swim, enemies, True, False)
+            #####################################################################
+            # 6. COLLISION EVENT
             enemy_collisions = pygame.sprite.spritecollide(sprite, enemies, pygame.sprite.collide_mask)
             for enemy in enemy_collisions:
                 print(enemy.number)
@@ -207,9 +182,16 @@ class Game:
                     self.sound_1.play()
                     self.reset_problem = True
 
+            #####################################################################
+            # 7. screen 1 COLLISION EVENT
+            if pygame.sprite.spritecollide(screen1_sprite, screen1_bubble_sprite_group, pygame.sprite.collide_mask):
+                self.display_screen_one = False
+
+        #####################################################################
+        # 8. MOVE SPRITE based on pressed key
         pressed_key = pygame.key.get_pressed()
         if pressed_key[K_ESCAPE]:
-            self.show_menu = True
+            self.display_standard_two_menu = True
             self.score = 0
             self.count = 0
             self.shell_menu_check = False
@@ -218,6 +200,7 @@ class Game:
             sprite_group.draw(screen)
         return True
 
+    #############################################################################
     def set_problem(self):
         if self.operation == "addition":
             self.addition()
@@ -229,7 +212,7 @@ class Game:
             self.division()
         self.button_list = self.get_button_list()
 
-    #######################################################
+    #############################################################################
     def addition(self):
         a = random.randint(0, 100)
         b = random.randint(0, 100)
@@ -259,7 +242,7 @@ class Game:
         self.problem["result"] = a * b
         self.operation = "multiplication"
 
-    #######################################################
+    #############################################################################
 
     def get_button_list(self):
         # return a list with four buttons
@@ -322,6 +305,7 @@ class Game:
 
         return button_list
 
+    #############################################################################
     def check_result(self):
         for button in self.button_list:
             if button.isPressed():
@@ -341,46 +325,31 @@ class Game:
                 # set reset_problem True so it can go to the next problem
                 self.reset_problem = True
 
+    #############################################################################
+
     def run_logic(self):
-        # update menu
-        # self.menu.update()
-        # self.screen_two.update(key_press=self.menu_key_press)
-        self.shell_menu.update()
+        if self.shell_menu_check:
+            self.shell_menu.update()
+
+    #############################################################################
 
     def display_frame(self, screen):
-        background.set_background(screen, self.show_menu)
+        background.set_background(screen, "screen_1")
         time_wait = False
-
-        # for btn in sign_in.button_sign_in_list:
-        #     if btn.isPressed():
-        #         global USERNAME
-        #         print(btn.get_btn_value())
-        #         print(USERNAME)
-        #         sign_in.display_sign_in(pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT]), btn.get_btn_value())
-        #
-        #         pygame.display.flip()
-
+        #############################################################################
         # screen 1
         if self.display_screen_one:
             background.set_background(screen, "screen_1")
             time_wait = False
 
             self.screen_one.display_screen_one(screen)
-            is_swimming = screen1_swim.swim_right(True)
-            if is_swimming:
-                screen1_swimming.draw(screen)
-                screen1_swimming.update()
-            else:
-                # self.bubble_burst.play()
-                bursting.update()
-                bursting.draw(screen)
 
-            bursting.draw(screen)
+            screen1_sprite_group.draw(screen)
+            screen1_bubble_sprite_group.draw(screen)
+            screen1_sprite_group.update()
+            screen1_sprite.swim_right()
 
-            # global TICKS
-            TICKS = pygame.time.get_ticks()
-            if TICKS > 3600:
-                self.display_screen_one = False
+        #############################################################################
 
         # screen 2
         elif self.display_screen_two:
@@ -389,39 +358,44 @@ class Game:
 
             self.screen_two.display_frame(screen)
             bubbles.update()
-            for entity in all_sprites:
-                screen.blit(entity.surf, entity.rect)
+            for bubble in bubbles:
+                screen.blit(bubble.surf, bubble.rect)
 
-        # 1. Show menu
-        elif self.show_menu:
+        #############################################################################
+
+        # ASD menu screen
+        elif self.display_standard_two_menu:
             background.set_background(screen, "menu")
             time_wait = False
 
-            self.menu.display_frame(screen)
+            self.standard_two_menu.display_frame(screen)
 
-        # 2. Game Over Screen
-        elif self.count == 45:
-            # if the count gets to 3 that means that the game is over
+        #############################################################################
+
+        # Game Over Screen
+        elif self.count == 5:
+            # if the count gets to 5 that means that the game is over
             msg_1 = "You answered " + str(self.score / 5) + " correctly"
             msg_2 = "Your score was " + str(self.score)
             self.display_message(screen, (msg_1, msg_2))
 
-            self.show_menu = True
-            # reset score and count to 0
+            self.display_standard_two_menu = True
             self.score = 0
             self.count = 0
-            # set time_wait True to wait 3 seconds
+
             time_wait = True
 
+        #############################################################################
+        # Sign In Screen
         elif self.display_sign_in:
             background.set_background(screen, "menu")
             time_wait = False
 
             sign_in.display_sign_in(screen, self.username)
-            # for btn in sign_in.button_sign_in_list:
-            #     if btn.isPressed():
-            #         print("Luchi")
-        # 3. Math Problem Screen
+
+        #############################################################################
+
+        # 3. ASD Game Screen
         else:
             # labels for each number
             label_1 = self.font.render(str(self.problem["num1"]), True, (127, 81, 0))
@@ -430,7 +404,6 @@ class Game:
             label_4 = self.font.render("  =  ", True, (254, 0, 154))
 
             label_5 = self.font.render("?", True, (242, 232, 213))
-
 
             # center the equation
             # t_w: total width
@@ -449,9 +422,9 @@ class Game:
 
             screen.blit(self.shell_image, (SCREEN_WIDTH - 64 - 36, 24))
 
-            # bubbles.update()
-            sprite_group.update()
+            # sprite
             sprite_group.draw(screen)
+            sprite_group.update()
 
             pygame.display.update()
 
@@ -462,9 +435,9 @@ class Game:
                 self.shell_menu.display_frame(screen)
                 pygame.display.update()
 
-
-
         pygame.display.flip()
+
+        #############################################################################
 
         # --- this is for the game to wait a few seconds to be able to show
         # --- what we have drawn before it change to another frame
@@ -478,6 +451,8 @@ class Game:
         elif time_wait:
             # wait three seconds
             pygame.time.wait(4000)
+
+    #############################################################################
 
     def display_message(self, screen, items):
         """ display every string that is inside of a tuple(args) """

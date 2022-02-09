@@ -42,13 +42,13 @@ class Sprite(pygame.sprite.Sprite):
 
     def swim(self, pressed_key):
         if pressed_key[K_UP]:
-            self.rect.move_ip(0, -5)
+            self.rect.move_ip(0, -1)
         if pressed_key[K_DOWN]:
-            self.rect.move_ip(0, 5)
+            self.rect.move_ip(0, 1)
         if pressed_key[K_LEFT]:
-            self.rect.move_ip(-5, 0)
+            self.rect.move_ip(-1, 0)
         if pressed_key[K_RIGHT]:
-            self.rect.move_ip(5, 0)
+            self.rect.move_ip(1, 0)
 
         # Keep player on the screen
         if self.rect.left < 0:
@@ -60,13 +60,8 @@ class Sprite(pygame.sprite.Sprite):
         if self.rect.bottom >= SCREEN_HEIGHT:
             self.rect.bottom = SCREEN_HEIGHT
 
-    def swim_right(self, swim):
-        if swim:
-            if self.rect.x == 265:
-                return False
-            else:
-                self.rect.move_ip(5, 0)
-                return True
+    def swim_right(self):
+        self.rect.move_ip(5, 0)
 
 
 
