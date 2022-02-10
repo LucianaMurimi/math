@@ -1,3 +1,5 @@
+import random
+
 import pygame.key
 from bg import *
 from menu import Menu
@@ -7,7 +9,7 @@ from screen_1 import *
 from sprite import *
 from bubble_sprite import *
 from sign_in import *
-
+from button_level1 import *
 
 pygame.init()
 
@@ -15,7 +17,7 @@ pygame.init()
 background = Background()
 sprite = Sprite()
 screen1_sprite = Sprite()
-screen1_bubble_sprite = BubbleSprite(SCREEN_WIDTH / 2, 270)
+screen1_bubble_sprite = BubbleSprite(SCREEN_WIDTH / 2 - 50, 270)
 sign_in = SignIn()
 
 # SPRITE GROUPS
@@ -44,13 +46,21 @@ class Game:
         self.display_screen_one = True
 
         # menu
-        self.standard_two_menu = Menu(("Addition", "Subtraction", "Multiplication"),
-                         ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=56)
-        self.display_standard_two_menu = True
-
         self.screen_two = Menu(("Standard 1", "Standard 2"),
-                         ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=64)
+                               ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=64)
         self.display_screen_two = True
+
+        self.standard_one_menu = Menu(("Level 1", "Level 2"),
+                                      ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=56)
+        self.display_standard_one_menu = False
+        self.display_standard_one_level = 0
+        self.numbers_arr = []
+        self.missing_num = None
+        self.level1_buttons = []
+
+        self.standard_two_menu = Menu(("Addition", "Subtraction", "Multiplication"),
+                                      ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=56)
+        self.display_standard_two_menu = False
 
         self.shell_menu = Menu(("SIGN IN", "BACK", "EXIT"), ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=42)
         self.shell_menu_check = False
@@ -61,7 +71,7 @@ class Game:
         self.font = pygame.font.Font("./assets/fonts/Sniglet-Regular.ttf", 42)
         self.score_font = pygame.font.Font("./assets/fonts/RosewellBlackRGH.otf", 20)
 
-        self.display_ASD_game_screen = True
+        self.display_ASD_game_screen = False
         # dictionary with keys: num1, num2, result
         # variables for creating the arithmetic problem
         self.problem = {"num1": 0, "num2": 0, "result": 0}
@@ -93,13 +103,9 @@ class Game:
             # 1. quit game on EXIT
             if event.type == pygame.QUIT:
                 return False
-            #####################################################################
-            # 2. ESCAPE KEYPRESS -> redirects to previous screen
-            if event.type == pygame.K_ESCAPE:
-                self.menu.state = 0
 
             #####################################################################
-            # 3. MOUSE PRESS events
+            # 2. MOUSE PRESS events
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if not self.display_standard_two_menu and self.shell_rect.collidepoint(pygame.mouse.get_pos()):
                     self.shell_menu_check = not self.shell_menu_check
@@ -119,7 +125,7 @@ class Game:
                             pygame.display.flip()
 
             #####################################################################
-            # 4. KEY DOWN events -> check what screen the key down events are occurring -> update accordingly
+            # 3. KEY DOWN events -> check what screen the key down events are occurring -> update accordingly
             if event.type == pygame.KEYDOWN:
                 # if SCREEN TWO - standard 1, standard 2
                 if self.display_screen_two:
@@ -130,12 +136,33 @@ class Game:
                         self.screen_two.update(key_press=pygame.K_UP, options=1)
                         pygame.display.flip()
 
-                    elif event.key == pygame.K_KP_ENTER:    # enter either standard 1 or standard 2 level
+                    elif event.key == pygame.K_KP_ENTER:  # enter either standard 1 or standard 2 level
                         if self.screen_two.state == 0:
                             self.display_screen_two = False
+                            self.display_standard_one_menu = True
                             pygame.time.wait(500)
                         elif self.screen_two.state == 1:
                             self.display_screen_two = False
+                            self.display_standard_two_menu = True
+                            pygame.time.wait(500)
+
+                # if STANDARD ONE MENU SCREEN - level 1 (ordering nos), level 2 (counting objects)
+                if self.display_standard_one_menu:
+                    if event.key == pygame.K_DOWN:
+                        self.standard_one_menu.update(key_press=pygame.K_DOWN, options=1)
+                        pygame.display.flip()
+                    elif event.key == pygame.K_UP:
+                        self.standard_one_menu.update(key_press=pygame.K_UP, options=1)
+                        pygame.display.flip()
+                    elif event.key == pygame.K_KP_ENTER:  # enter either level 1 or level 2
+                        if self.standard_one_menu.state == 0:
+                            self.display_standard_one_level = 1
+                            self.set_std1_level1_problem()
+                            self.display_standard_one_menu = False
+                            pygame.time.wait(500)
+                        elif self.standard_one_menu.state == 1:
+                            self.display_standard_one_level = 2
+                            self.display_standard_one_menu = False
                             pygame.time.wait(500)
 
                 # if STANDARD TWO MENU SCREEN - addition, subtraction, multiplication
@@ -163,38 +190,42 @@ class Game:
                             self.display_standard_two_menu = False
 
             #####################################################################
-            # 5. ADDbubble Custom Event
+            # 4. ADDbubble Custom Event
             if event.type == self.ADDbubble:
                 # create the new bubble and add it to sprite groups
                 new_bubble = Bubbles()
                 bubbles.add(new_bubble)
 
             #####################################################################
-            # 6. COLLISION EVENT
-            enemy_collisions = pygame.sprite.spritecollide(sprite, enemies, pygame.sprite.collide_mask)
-            for enemy in enemy_collisions:
-                print(enemy.number)
-                enemy.bursting.update()
-                enemy.bursting.draw(screen)
+            # 5. COLLISION EVENT
+            if self.display_ASD_game_screen:
+                enemy_collisions = pygame.sprite.spritecollide(sprite, enemies, pygame.sprite.collide_mask)
+                for enemy in enemy_collisions:
+                    print(enemy.number)
+                    enemy.bursting.update()
+                    enemy.bursting.draw(screen)
 
-                if enemy.number == self.problem["result"]:
-                    self.score += 5
-                    self.sound_1.play()
-                    self.reset_problem = True
+                    if enemy.number == self.problem["result"]:
+                        self.score += 5
+                        self.sound_1.play()
+                        self.reset_problem = True
 
             #####################################################################
-            # 7. screen 1 COLLISION EVENT
+            # 6. screen 1 COLLISION EVENT
             if pygame.sprite.spritecollide(screen1_sprite, screen1_bubble_sprite_group, pygame.sprite.collide_mask):
+                screen1_bubble_sprite_group.update()
+                screen1_bubble_sprite_group.draw(screen)
                 self.display_screen_one = False
 
         #####################################################################
-        # 8. MOVE SPRITE based on pressed key
+        # 7. MOVE SPRITE based on pressed key
         pressed_key = pygame.key.get_pressed()
         if pressed_key[K_ESCAPE]:
-            self.display_standard_two_menu = True
             self.score = 0
             self.count = 0
-            self.shell_menu_check = False
+            self.display_screen_two = True
+            self.display_standard_one_level = 0
+
         else:
             sprite.swim(pressed_key)
             sprite_group.draw(screen)
@@ -202,6 +233,7 @@ class Game:
 
     #############################################################################
     def set_problem(self):
+        self.display_ASD_game_screen = True
         if self.operation == "addition":
             self.addition()
         elif self.operation == "subtraction":
@@ -211,6 +243,23 @@ class Game:
         elif self.operation == "division":
             self.division()
         self.button_list = self.get_button_list()
+
+    #############################################################################
+
+    def set_std1_level1_problem(self):
+        num = random.randint(1, 4)
+        self.missing_num = random.randint(num, num + 4)
+
+        for i in range(0, 5):
+            if num == self.missing_num:
+                self.numbers_arr.append("?")
+                print("missing num", self.missing_num)
+            else:
+                self.numbers_arr.append(num)
+
+            num = num + 1
+
+        self.level1_buttons = self.get_level1_button_list()
 
     #############################################################################
     def addition(self):
@@ -306,6 +355,68 @@ class Game:
         return button_list
 
     #############################################################################
+    def get_level1_button_list(self):
+        # return a list with four buttons
+        button_list = []
+
+        # assign one of the buttons with the right answer
+        choice = random.randint(1, 4)
+
+        # define the width and height
+        width = 72
+        height = 72
+
+        pos_x = random.randint(100, 300)
+        pos_y = random.randint(150, 240)
+
+        if choice == 1:
+            btn = ButtonLevel1(pos_x, pos_y, width, height, self.missing_num)
+            button_list.append(btn)
+            enemies.add(btn)
+        else:
+            btn = ButtonLevel1(pos_x, pos_y, width, height, random.randint(1, 9))
+            button_list.append(btn)
+            enemies.add(btn)
+
+        pos_x = random.randint(500, 700)
+        pos_y = random.randint(150, 240)
+
+        if choice == 2:
+            btn = ButtonLevel1(pos_x, pos_y, width, height, self.missing_num)
+            button_list.append(btn)
+            enemies.add(btn)
+        else:
+            btn = ButtonLevel1(pos_x, pos_y, width, height, random.randint(1, 9))
+            button_list.append(btn)
+            enemies.add(btn)
+
+        pos_x = random.randint(100, 300)
+        pos_y = random.randint(340, 380)
+
+        if choice == 3:
+            btn = ButtonLevel1(pos_x, pos_y, width, height, self.missing_num)
+            button_list.append(btn)
+            enemies.add(btn)
+        else:
+            btn = ButtonLevel1(pos_x, pos_y, width, height, random.randint(1, 9))
+            button_list.append(btn)
+            enemies.add(btn)
+
+        pos_x = random.randint(500, 700)
+        pos_y = random.randint(340, 380)
+
+        if choice == 4:
+            btn = ButtonLevel1(pos_x, pos_y, width, height, self.missing_num)
+            button_list.append(btn)
+            enemies.add(btn)
+        else:
+            btn = ButtonLevel1(pos_x, pos_y, width, height, random.randint(1, 9))
+            button_list.append(btn)
+            enemies.add(btn)
+
+        return button_list
+
+    #############################################################################
     def check_result(self):
         for button in self.button_list:
             if button.isPressed():
@@ -363,6 +474,18 @@ class Game:
 
         #############################################################################
 
+        # STANDARD ONE menu screen
+        elif self.display_standard_one_menu:
+            background.set_background(screen, "menu")
+            time_wait = False
+
+            self.standard_one_menu.display_frame(screen)
+            bubbles.update()
+            for bubble in bubbles:
+                screen.blit(bubble.surf, bubble.rect)
+
+        #############################################################################
+
         # ASD menu screen
         elif self.display_standard_two_menu:
             background.set_background(screen, "menu")
@@ -373,7 +496,7 @@ class Game:
         #############################################################################
 
         # Game Over Screen
-        elif self.count == 5:
+        elif self.count == 3:
             # if the count gets to 5 that means that the game is over
             msg_1 = "You answered " + str(self.score / 5) + " correctly"
             msg_2 = "Your score was " + str(self.score)
@@ -394,9 +517,53 @@ class Game:
             sign_in.display_sign_in(screen, self.username)
 
         #############################################################################
+        # STANDARD 1 LEVEL 1 Game Screen
+        elif self.display_standard_one_level == 1:
+            background.set_background(screen, "standard1_level1")
+            time_wait = False
+
+            label_instruction = self.font.render("Pop the bubble with the missing number !", True, (254, 0, 154))
+            label_instruction_w = label_instruction.get_width()
+
+            pos_x = (SCREEN_WIDTH / 2) - (label_instruction_w / 2)
+            screen.blit(label_instruction, (pos_x, 36))
+            t_w = 0
+
+            font = pygame.font.Font("./assets/fonts/Sniglet-Regular.ttf", 56)
+
+            for i in range(4, -1, -1):
+                if isinstance(self.numbers_arr[i], str):
+                    label = font.render(self.numbers_arr[i], True, (255, 36, 0))
+                else:
+                    label = font.render(str(self.numbers_arr[i]), True, (15, 157, 8))
+
+                label_w = label.get_width() + 128
+                t_w = t_w + label_w
+                pos_x = (SCREEN_WIDTH / 2) - (t_w / 2) + label_w + 64
+                screen.blit(label, (pos_x, 108))
+
+                # buttons
+                for btn in self.level1_buttons:
+                    btn.draw(screen)
+
+        #############################################################################
+
+        # STANDARD 1 LEVEL 2 Game Screen
+        elif self.display_standard_one_level == 2:
+            background.set_background(screen, "standard1_level2")
+            time_wait = False
+
+            label_instruction = self.font.render("How many rabbits are there !", True, (254, 0, 154))
+            label_instruction_w = label_instruction.get_width()
+
+            pos_x = (SCREEN_WIDTH / 2) - (label_instruction_w / 2)
+            screen.blit(label_instruction, (pos_x, 36))
+
+        #############################################################################
 
         # 3. ASD Game Screen
         else:
+            background.set_background(screen, "ASD_game_screen")
             # labels for each number
             label_1 = self.font.render(str(self.problem["num1"]), True, (127, 81, 0))
             label_2 = self.font.render(self.symbols[self.operation], True, (255, 255, 0))
@@ -414,7 +581,8 @@ class Game:
             screen.blit(label_2, (pos_x + label_1.get_width(), 50))
             screen.blit(label_3, (pos_x + label_1.get_width() + label_2.get_width(), 50))
             screen.blit(label_4, (pos_x + label_1.get_width() + label_2.get_width() + label_3.get_width(), 50))
-            screen.blit(label_5, (pos_x + label_1.get_width() + label_2.get_width() + label_3.get_width() + label_4.get_width(), 50))
+            screen.blit(label_5, (
+            pos_x + label_1.get_width() + label_2.get_width() + label_3.get_width() + label_4.get_width(), 50))
 
             # buttons
             for btn in self.button_list:
