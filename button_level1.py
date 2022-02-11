@@ -12,7 +12,7 @@ class ButtonLevel1(pygame.sprite.Sprite):
 
         self.radius = width / 2
 
-        self.text_color = (99, 23, 169)
+        self.text_color = (2, 83, 147)
 
         self.rect = pygame.Rect(x, y, width, height)
 

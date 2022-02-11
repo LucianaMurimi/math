@@ -10,6 +10,8 @@ from sprite import *
 from bubble_sprite import *
 from sign_in import *
 from button_level1 import *
+from boy_sprite import *
+from bee_sprite import *
 
 pygame.init()
 
@@ -18,6 +20,8 @@ background = Background()
 sprite = Sprite()
 screen1_sprite = Sprite()
 screen1_bubble_sprite = BubbleSprite(SCREEN_WIDTH / 2 - 50, 270)
+boy_sprite = BoySprite(0, 260)
+bee_sprite = BeeSprite(0, 100)
 sign_in = SignIn()
 
 # SPRITE GROUPS
@@ -32,8 +36,16 @@ screen1_sprite_group.add(screen1_sprite)
 screen1_bubble_sprite_group = pygame.sprite.Group()
 screen1_bubble_sprite_group.add(screen1_bubble_sprite)
 
+boy_sprite_group = pygame.sprite.Group()
+boy_sprite_group.add(boy_sprite)
+
+bee_sprite_group = pygame.sprite.Group()
+bee_sprite_group.add(bee_sprite)
+
 enemies = pygame.sprite.Group()
 bubbles = pygame.sprite.Group()
+
+football_img = pygame.image.load("./assets/images/football.png").convert_alpha()
 
 
 class Game:
@@ -223,12 +235,30 @@ class Game:
         if pressed_key[K_ESCAPE]:
             self.score = 0
             self.count = 0
-            self.display_screen_two = True
-            self.display_standard_one_level = 0
+
+            if self.display_standard_one_level == 1:
+                self.display_standard_one_level = 0
+                self.display_standard_one_menu = True
+
+            elif self.display_standard_one_level == 2:
+                self.display_standard_one_level = 0
+                self.display_standard_one_menu = True
+
+            elif self.display_standard_one_menu:
+                self.display_standard_one_menu = False
+                self.display_screen_two = True
+
+            elif self.display_standard_two_menu:
+                self.display_standard_two_menu = not self.display_standard_two_menu
+                self.display_screen_two = True
+
+            elif self.display_sign_in:
+                self.display_sign_in = not self.display_sign_in
 
         else:
             sprite.swim(pressed_key)
             sprite_group.draw(screen)
+
         return True
 
     #############################################################################
@@ -460,6 +490,11 @@ class Game:
             screen1_sprite_group.update()
             screen1_sprite.swim_right()
 
+            if pygame.sprite.spritecollide(screen1_sprite, screen1_bubble_sprite_group, pygame.sprite.collide_mask):
+                screen1_bubble_sprite.update()
+                screen1_bubble_sprite_group.draw(screen)
+                self.display_screen_one = False
+
         #############################################################################
 
         # screen 2
@@ -469,8 +504,8 @@ class Game:
 
             self.screen_two.display_frame(screen)
             bubbles.update()
-            for bubble in bubbles:
-                screen.blit(bubble.surf, bubble.rect)
+            # for bubble in bubbles:
+            #     screen.blit(bubble.surf, bubble.rect)
 
         #############################################################################
 
@@ -522,20 +557,21 @@ class Game:
             background.set_background(screen, "standard1_level1")
             time_wait = False
 
-            label_instruction = self.font.render("Pop the bubble with the missing number !", True, (254, 0, 154))
+            instruction_font = pygame.font.Font("./assets/fonts/Sniglet-Regular.ttf", 32)
+            label_instruction = instruction_font.render("Kick the ball with the missing number !", True, (254, 0, 154))
             label_instruction_w = label_instruction.get_width()
 
             pos_x = (SCREEN_WIDTH / 2) - (label_instruction_w / 2)
             screen.blit(label_instruction, (pos_x, 36))
             t_w = 0
 
-            font = pygame.font.Font("./assets/fonts/Sniglet-Regular.ttf", 56)
+            font = pygame.font.Font("./assets/fonts/Sniglet-Regular.ttf", 40)
 
             for i in range(4, -1, -1):
                 if isinstance(self.numbers_arr[i], str):
                     label = font.render(self.numbers_arr[i], True, (255, 36, 0))
                 else:
-                    label = font.render(str(self.numbers_arr[i]), True, (15, 157, 8))
+                    label = font.render(str(self.numbers_arr[i]), True, (2, 83, 147))
 
                 label_w = label.get_width() + 128
                 t_w = t_w + label_w
@@ -546,6 +582,9 @@ class Game:
                 for btn in self.level1_buttons:
                     btn.draw(screen)
 
+            boy_sprite_group.draw(screen)
+            boy_sprite.update()
+
         #############################################################################
 
         # STANDARD 1 LEVEL 2 Game Screen
@@ -553,11 +592,21 @@ class Game:
             background.set_background(screen, "standard1_level2")
             time_wait = False
 
-            label_instruction = self.font.render("How many rabbits are there !", True, (254, 0, 154))
+            instruction_font = pygame.font.Font("./assets/fonts/Sniglet-Regular.ttf", 32)
+            label_instruction = instruction_font.render("Count the number of balls !", True, BLACK)
             label_instruction_w = label_instruction.get_width()
 
             pos_x = (SCREEN_WIDTH / 2) - (label_instruction_w / 2)
             screen.blit(label_instruction, (pos_x, 36))
+
+            # buttons
+            for btn in self.button_list:
+                btn.draw(screen)
+
+            bee_sprite_group.draw(screen)
+            bee_sprite.update()
+
+            screen.blit(football_img, (100, 230))
 
         #############################################################################
 

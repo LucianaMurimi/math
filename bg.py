@@ -13,7 +13,7 @@ class Background:
         self.bg_image = pygame.image.load("./assets/images/underwater.png").convert()
         self.bg_menu = pygame.image.load("./assets/images/water_bg.jpg").convert()
         self.bg_std1_level1 = pygame.image.load("./assets/images/field.jpg").convert()
-        self.bg_std1_level2 = pygame.image.load("./assets/images/meadow.jpg").convert()
+        self.bg_std1_level2 = pygame.image.load("./assets/images/meadow_flipped.jpg").convert()
 
     def set_background(self, screen, is_screen):
         if is_screen == "screen_1":
