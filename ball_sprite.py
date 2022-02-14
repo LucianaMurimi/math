@@ -41,3 +41,17 @@ class BallSprite(pygame.sprite.Sprite):
 
         return self.index
 
+    def kicking(self, current_x, pos_x, current_y):
+        if pos_x > current_x:
+            self.rect.move_ip((pos_x - current_x + 48), -(current_y - 108 + 10))
+
+        elif pos_x < current_x:
+            self.rect.move_ip(-(current_x - pos_x - 48), -(current_y - 108 + 10))
+
+    def roll_off(self):
+        ball_x = self.rect.x
+        while ball_x < SCREEN_WIDTH:
+            self.rect.move_ip(ball_x + 5, 0)
+            ball_x = self.rect.x
+            # pygame.display.update()
+            # pygame.display.flip()

@@ -12,16 +12,20 @@ from sign_in import *
 from button_level1 import *
 from boy_sprite import *
 from bee_sprite import *
+from football_sprite import *
+from butterfly_sprite import *
+import time
 
 pygame.init()
 
 # OBJECTS
 background = Background()
-sprite = Sprite()
-screen1_sprite = Sprite()
-screen1_bubble_sprite = BubbleSprite(SCREEN_WIDTH / 2 - 50, 270)
+sprite = Sprite(0, 80)
+screen1_sprite = Sprite(0, 270)
+screen1_bubble_sprite = BubbleSprite(750, 270)
 boy_sprite = BoySprite(0, 260)
-bee_sprite = BeeSprite(0, 100)
+bee_sprite = BeeSprite(0, 228)
+butterfly_sprite = ButterflySprite(SCREEN_WIDTH / 2 - 50, 360)
 sign_in = SignIn()
 
 # SPRITE GROUPS
@@ -42,16 +46,19 @@ boy_sprite_group.add(boy_sprite)
 bee_sprite_group = pygame.sprite.Group()
 bee_sprite_group.add(bee_sprite)
 
+butterfly_sprite_group = pygame.sprite.Group()
+butterfly_sprite_group.add(butterfly_sprite)
+
+football_sprite_group = pygame.sprite.Group()
+
 enemies = pygame.sprite.Group()
 bubbles = pygame.sprite.Group()
-
-football_img = pygame.image.load("./assets/images/football.png").convert_alpha()
 
 
 class Game:
     # CUSTOM EVENTS
     ADDbubble = pygame.USEREVENT + 1
-    pygame.time.set_timer(ADDbubble, 5000)
+    pygame.time.set_timer(ADDbubble, 1000)
 
     def __init__(self):
         self.screen_one = ScreenOne()
@@ -69,6 +76,11 @@ class Game:
         self.numbers_arr = []
         self.missing_num = None
         self.level1_buttons = []
+        self.pos_x_missing = 0
+        self.level2_buttons = []
+        self.roll = False
+
+        self.num_of_footballs = None
 
         self.standard_two_menu = Menu(("Addition", "Subtraction", "Multiplication"),
                                       ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=56)
@@ -90,7 +102,7 @@ class Game:
         self.symbols = {"addition": " + ", "subtraction": " - ", "multiplication": " x "}
         # variable for name of operation
         self.operation = ""
-        self.button_list = self.get_button_list()
+        self.button_list = ""
 
         self.reset_problem = False
 
@@ -103,9 +115,17 @@ class Game:
         self.shell_rect = pygame.Rect(SCREEN_WIDTH - 64 - 36, 24, 72, 72)
 
         # sound effects
+        pygame.mixer.pre_init(44100, -16, 2, 2048)
+        pygame.mixer.init()
+        pygame.mixer.music.load('./assets/audio/game start.mp3')
+        pygame.mixer.music.play(1)
+
         self.sound_1 = pygame.mixer.Sound("./assets/audio/item1.ogg")
         self.sound_2 = pygame.mixer.Sound("./assets/audio/item2.ogg")
         self.bubble_burst = pygame.mixer.Sound("./assets/audio/bubble_burst.mp3")
+        self.gamestart_audio = pygame.mixer.Sound("./assets/audio/game start.mp3")
+        self.gameover_audio = pygame.mixer.Sound("./assets/audio/gameover.wav")
+        self.wow = pygame.mixer.Sound("./assets/audio/wow.mp3")
 
         self.username = ""
 
@@ -174,6 +194,7 @@ class Game:
                             pygame.time.wait(500)
                         elif self.standard_one_menu.state == 1:
                             self.display_standard_one_level = 2
+                            self.set_std1_level2_problem()
                             self.display_standard_one_menu = False
                             pygame.time.wait(500)
 
@@ -203,7 +224,7 @@ class Game:
 
             #####################################################################
             # 4. ADDbubble Custom Event
-            if event.type == self.ADDbubble:
+            if event.type == self.ADDbubble and self.count == 3:
                 # create the new bubble and add it to sprite groups
                 new_bubble = Bubbles()
                 bubbles.add(new_bubble)
@@ -213,7 +234,6 @@ class Game:
             if self.display_ASD_game_screen:
                 enemy_collisions = pygame.sprite.spritecollide(sprite, enemies, pygame.sprite.collide_mask)
                 for enemy in enemy_collisions:
-                    print(enemy.number)
                     enemy.bursting.update()
                     enemy.bursting.draw(screen)
 
@@ -221,13 +241,67 @@ class Game:
                         self.score += 5
                         self.sound_1.play()
                         self.reset_problem = True
+                    else:
+                        current_x = sprite.rect.x
+                        current_y = sprite.rect.y
+                        sprite.reposition(current_x, current_y)
+
+                        self.reset_problem = True
 
             #####################################################################
             # 6. screen 1 COLLISION EVENT
-            if pygame.sprite.spritecollide(screen1_sprite, screen1_bubble_sprite_group, pygame.sprite.collide_mask):
-                screen1_bubble_sprite_group.update()
-                screen1_bubble_sprite_group.draw(screen)
-                self.display_screen_one = False
+            if self.display_standard_one_level == 1:
+                enemy_collisions = pygame.sprite.spritecollide(boy_sprite, enemies, pygame.sprite.collide_mask)
+                for enemy in enemy_collisions:
+                    current_x = enemy.rect.x
+                    current_y = enemy.rect.y
+
+                    if enemy.number == self.missing_num:
+                        self.score += 5
+                        self.wow.play()
+
+                        enemy.burst.kicking(current_x, self.pos_x_missing, current_y)
+
+                        if self.pos_x_missing > current_x:
+                            enemy.rect.move_ip((self.pos_x_missing - current_x + 48), -(current_y - 108 + 10))
+
+                        elif self.pos_x_missing < current_x:
+                            enemy.rect.move_ip(-(current_x - self.pos_x_missing - 48), -(current_y - 108 + 10))
+
+                        enemy.bursting.draw(screen)
+
+                    else:
+                        ball_x = enemy.rect.x
+                        while int(ball_x) < SCREEN_WIDTH:
+                            enemy.rect.move_ip(ball_x + 5, 0)
+                            ball_x = enemy.rect.x
+
+                            enemy.burst.roll_off()
+                            enemy.bursting.draw(screen)
+
+                            pygame.display.update()
+                            pygame.display.flip()
+
+                    for enemy in enemies:
+                        enemy.kill()
+
+                    self.level2_buttons = []
+                    self.missing_num = 0
+
+                    current_x = boy_sprite.rect.x
+                    current_y = boy_sprite.rect.y
+                    boy_sprite.rect.move_ip(-(current_x), -(current_y - 260))
+
+                    self.reset_problem = True
+
+            if self.display_standard_one_level == 2:
+                enemy_collisions = pygame.sprite.spritecollide(bee_sprite, enemies, pygame.sprite.collide_mask)
+                for enemy in enemy_collisions:
+                    enemy.bursting.update()
+                    enemy.bursting.draw(screen)
+
+                    if enemy.number == self.num_of_footballs:
+                        self.roll = True
 
         #####################################################################
         # 7. MOVE SPRITE based on pressed key
@@ -255,9 +329,21 @@ class Game:
             elif self.display_sign_in:
                 self.display_sign_in = not self.display_sign_in
 
-        else:
+        # else:
+        #     sprite.swim(pressed_key)
+        #     sprite_group.draw(screen)
+
+        elif self.display_ASD_game_screen:
             sprite.swim(pressed_key)
             sprite_group.draw(screen)
+
+        elif self.display_standard_one_level == 1:
+            boy_sprite.run(pressed_key)
+            boy_sprite_group.draw(screen)
+
+        elif self.display_standard_one_level == 2:
+            bee_sprite.fly(pressed_key)
+            bee_sprite_group.draw(screen)
 
         return True
 
@@ -279,6 +365,7 @@ class Game:
     def set_std1_level1_problem(self):
         num = random.randint(1, 4)
         self.missing_num = random.randint(num, num + 4)
+        self.numbers_arr = []
 
         for i in range(0, 5):
             if num == self.missing_num:
@@ -290,6 +377,19 @@ class Game:
             num = num + 1
 
         self.level1_buttons = self.get_level1_button_list()
+
+    #############################################################################
+
+    def set_std1_level2_problem(self):
+        self.num_of_footballs = random.randint(1, 9)
+        print("num of footballs: ", self.num_of_footballs)
+
+        pos_x = (SCREEN_WIDTH / 2) - ((self.num_of_footballs * 64) + ((self.num_of_footballs-1) * 16)) / 2
+        for i in range(0, self.num_of_footballs):
+            football_sprite_group.add(FootballSprite(pos_x, 300))
+            pos_x = pos_x + 64 + 16
+
+        self.level2_buttons = self.get_level2_button_list()
 
     #############################################################################
     def addition(self):
@@ -390,63 +490,105 @@ class Game:
         button_list = []
 
         # assign one of the buttons with the right answer
-        choice = random.randint(1, 4)
+        choice = random.randint(1, 3)
+        numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        numbers.remove(self.missing_num)
 
         # define the width and height
         width = 72
         height = 72
 
-        pos_x = random.randint(100, 300)
-        pos_y = random.randint(150, 240)
+        pos_x = random.randint(276, 400)
+        pos_y = random.randint(280, 380)
 
         if choice == 1:
             btn = ButtonLevel1(pos_x, pos_y, width, height, self.missing_num)
             button_list.append(btn)
             enemies.add(btn)
         else:
-            btn = ButtonLevel1(pos_x, pos_y, width, height, random.randint(1, 9))
+            btn = ButtonLevel1(pos_x, pos_y, width, height, numbers[random.randint(0, 2)])
             button_list.append(btn)
             enemies.add(btn)
 
-        pos_x = random.randint(500, 700)
-        pos_y = random.randint(150, 240)
+        pos_x = random.randint(464, 588)
+        pos_y = random.randint(280, 380)
 
         if choice == 2:
             btn = ButtonLevel1(pos_x, pos_y, width, height, self.missing_num)
             button_list.append(btn)
             enemies.add(btn)
         else:
-            btn = ButtonLevel1(pos_x, pos_y, width, height, random.randint(1, 9))
+            btn = ButtonLevel1(pos_x, pos_y, width, height, numbers[random.randint(3, 6)])
             button_list.append(btn)
             enemies.add(btn)
 
-        pos_x = random.randint(100, 300)
-        pos_y = random.randint(340, 380)
+        pos_x = random.randint(652, 700)
+        pos_y = random.randint(280, 380)
 
         if choice == 3:
             btn = ButtonLevel1(pos_x, pos_y, width, height, self.missing_num)
             button_list.append(btn)
             enemies.add(btn)
         else:
-            btn = ButtonLevel1(pos_x, pos_y, width, height, random.randint(1, 9))
-            button_list.append(btn)
-            enemies.add(btn)
-
-        pos_x = random.randint(500, 700)
-        pos_y = random.randint(340, 380)
-
-        if choice == 4:
-            btn = ButtonLevel1(pos_x, pos_y, width, height, self.missing_num)
-            button_list.append(btn)
-            enemies.add(btn)
-        else:
-            btn = ButtonLevel1(pos_x, pos_y, width, height, random.randint(1, 9))
+            btn = ButtonLevel1(pos_x, pos_y, width, height, numbers[random.randint(7, 8)])
             button_list.append(btn)
             enemies.add(btn)
 
         return button_list
 
     #############################################################################
+
+    def get_level2_button_list(self):
+        # return a list with three buttons
+        button_list = []
+
+        # assign one of the buttons with the right answer
+        choice = random.randint(1, 3)
+
+        # define the width and height
+        width = 100
+        height = 100
+
+        pos_x = random.randint(100, 250)
+        pos_y = random.randint(0, 150)
+
+        if choice == 1:
+            btn = Button(pos_x, pos_y, width, height, self.num_of_footballs)
+            button_list.append(btn)
+            enemies.add(btn)
+        else:
+            btn = Button(pos_x, pos_y, width, height, random.randint(0, 9))
+            button_list.append(btn)
+            enemies.add(btn)
+
+        pos_x = random.randint(350, 450)
+        pos_y = random.randint(0, 150)
+
+        if choice == 2:
+            btn = Button(pos_x, pos_y, width, height, self.num_of_footballs)
+            button_list.append(btn)
+            enemies.add(btn)
+        else:
+            btn = Button(pos_x, pos_y, width, height, random.randint(0, 9))
+            button_list.append(btn)
+            enemies.add(btn)
+
+        pos_x = random.randint(550, 700)
+        pos_y = random.randint(0, 150)
+
+        if choice == 3:
+            btn = Button(pos_x, pos_y, width, height, self.num_of_footballs)
+            button_list.append(btn)
+            enemies.add(btn)
+        else:
+            btn = Button(pos_x, pos_y, width, height, random.randint(0, 9))
+            button_list.append(btn)
+            enemies.add(btn)
+
+        return button_list
+
+    ##############################################################################
+
     def check_result(self):
         for button in self.button_list:
             if button.isPressed():
@@ -465,7 +607,7 @@ class Game:
 
                 # set reset_problem True so it can go to the next problem
                 self.reset_problem = True
-
+        self.button_list = []
     #############################################################################
 
     def run_logic(self):
@@ -482,17 +624,18 @@ class Game:
         if self.display_screen_one:
             background.set_background(screen, "screen_1")
             time_wait = False
+            # self.gamestart_audio.play()
 
             self.screen_one.display_screen_one(screen)
 
             screen1_sprite_group.draw(screen)
             screen1_bubble_sprite_group.draw(screen)
+
             screen1_sprite_group.update()
             screen1_sprite.swim_right()
+            screen1_bubble_sprite.rect.move_ip(-5, 0)
 
             if pygame.sprite.spritecollide(screen1_sprite, screen1_bubble_sprite_group, pygame.sprite.collide_mask):
-                screen1_bubble_sprite.update()
-                screen1_bubble_sprite_group.draw(screen)
                 self.display_screen_one = False
 
         #############################################################################
@@ -516,8 +659,8 @@ class Game:
 
             self.standard_one_menu.display_frame(screen)
             bubbles.update()
-            for bubble in bubbles:
-                screen.blit(bubble.surf, bubble.rect)
+            # for bubble in bubbles:
+            #     screen.blit(bubble.surf, bubble.rect)
 
         #############################################################################
 
@@ -532,8 +675,13 @@ class Game:
 
         # Game Over Screen
         elif self.count == 3:
+
+            bubbles.update()
+            for bubble in bubbles:
+                screen.blit(bubble.surf, bubble.rect)
+
             # if the count gets to 5 that means that the game is over
-            msg_1 = "You answered " + str(self.score / 5) + " correctly"
+            msg_1 = "Well Done!!!"
             msg_2 = "Your score was " + str(self.score)
             self.display_message(screen, (msg_1, msg_2))
 
@@ -541,6 +689,7 @@ class Game:
             self.score = 0
             self.count = 0
 
+            self.gameover_audio.play()
             time_wait = True
 
         #############################################################################
@@ -570,6 +719,7 @@ class Game:
             for i in range(4, -1, -1):
                 if isinstance(self.numbers_arr[i], str):
                     label = font.render(self.numbers_arr[i], True, (255, 36, 0))
+                    self.pos_x_missing = (SCREEN_WIDTH / 2) - ((t_w + label.get_width()) / 2) + label.get_width() + 64
                 else:
                     label = font.render(str(self.numbers_arr[i]), True, (2, 83, 147))
 
@@ -583,8 +733,7 @@ class Game:
                     btn.draw(screen)
 
             boy_sprite_group.draw(screen)
-            boy_sprite.update()
-
+            boy_sprite_group.update()
         #############################################################################
 
         # STANDARD 1 LEVEL 2 Game Screen
@@ -592,21 +741,42 @@ class Game:
             background.set_background(screen, "standard1_level2")
             time_wait = False
 
-            instruction_font = pygame.font.Font("./assets/fonts/Sniglet-Regular.ttf", 32)
-            label_instruction = instruction_font.render("Count the number of balls !", True, BLACK)
-            label_instruction_w = label_instruction.get_width()
-
-            pos_x = (SCREEN_WIDTH / 2) - (label_instruction_w / 2)
-            screen.blit(label_instruction, (pos_x, 36))
-
-            # buttons
-            for btn in self.button_list:
-                btn.draw(screen)
+            # butterfly_sprite_group.draw(screen)
+            # butterfly_sprite.update()
 
             bee_sprite_group.draw(screen)
             bee_sprite.update()
 
-            screen.blit(football_img, (100, 230))
+            instruction_font = pygame.font.Font("./assets/fonts/Sniglet-Regular.ttf", 36)
+            label_instruction = instruction_font.render("Count the number of balls !", True, (254, 0, 154))
+            label_instruction_w = label_instruction.get_width()
+
+            pos_x = (SCREEN_WIDTH / 2) - (label_instruction_w / 2)
+            screen.blit(label_instruction, (pos_x, 168))
+
+            # buttons
+            for btn in self.level2_buttons:
+                btn.draw(screen)
+
+            # football
+            for ball in football_sprite_group:
+                football_sprite_group.draw(screen)
+
+            if self.roll:
+                for ball in football_sprite_group:
+                    ball.roll_right()
+
+                    if ball.rect.x > SCREEN_WIDTH * 1.5:
+                        for ball in football_sprite_group:
+                            ball.kill()
+
+                        self.level2_buttons = []
+
+                        current_x = bee_sprite.rect.x
+                        current_y = bee_sprite.rect.y
+                        bee_sprite.rect.move_ip((current_x - current_x), -(current_y - 228))
+                        self.roll = False
+                        self.reset_problem = True
 
         #############################################################################
 
@@ -660,11 +830,21 @@ class Game:
         # --- what we have drawn before it change to another frame
         if self.reset_problem:
             # wait 1 second
-            pygame.time.wait(1000)
-            self.set_problem()
-            # increase count by 1
-            self.count += 1
-            self.reset_problem = False
+            if self.display_standard_one_level == 2:
+                self.set_std1_level2_problem()
+                self.count += 1
+                self.reset_problem = False
+            elif self.display_standard_one_level == 1:
+                pygame.time.wait(1000)
+                self.set_std1_level1_problem()
+                self.count += 1
+                self.reset_problem = False
+            else:
+                pygame.time.wait(1000)
+                self.set_problem()
+                # increase count by 1
+                self.count += 1
+                self.reset_problem = False
         elif time_wait:
             # wait three seconds
             pygame.time.wait(4000)

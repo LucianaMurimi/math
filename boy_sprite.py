@@ -27,7 +27,7 @@ class BoySprite(pygame.sprite.Sprite):
         self.x = x
         self.y = y
         # creating a rect at position x,y (5,5) of size (150,198) which is the size of sprite
-        self.rect = pygame.Rect(self.x, self.y, 100, 100)
+        self.rect = pygame.Rect(self.x, self.y, 80, 212)
 
         self.mask = pygame.mask.from_surface(self.image)
 
@@ -44,4 +44,24 @@ class BoySprite(pygame.sprite.Sprite):
         self.image = self.images[self.index]
 
         return self.index
+
+    def run(self, pressed_key):
+        if pressed_key[K_UP]:
+            self.rect.move_ip(0, -5)
+        if pressed_key[K_DOWN]:
+            self.rect.move_ip(0, 5)
+        if pressed_key[K_LEFT]:
+            self.rect.move_ip(-5, 0)
+        if pressed_key[K_RIGHT]:
+            self.rect.move_ip(5, 0)
+
+        # Keep player on the screen
+        if self.rect.left < 0:
+            self.rect.left = 0
+        if self.rect.right > SCREEN_WIDTH:
+            self.rect.right = SCREEN_WIDTH
+        if self.rect.top <= 100:
+            self.rect.top = 100
+        if self.rect.bottom >= SCREEN_HEIGHT:
+            self.rect.bottom = SCREEN_HEIGHT
 

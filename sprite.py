@@ -4,7 +4,7 @@ from globals import *
 
 
 class Sprite(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, x, y):
         super(Sprite, self).__init__()
         # adding all the images to sprite array
         self.images = []
@@ -23,7 +23,7 @@ class Sprite(pygame.sprite.Sprite):
         self.image = self.images[self.index]
 
         # creating a rect at position x,y (5,5) of size (150,198) which is the size of sprite
-        self.rect = pygame.Rect(50, 270, 100, 100)
+        self.rect = pygame.Rect(x, y, 100, 100)
 
         self.mask = pygame.mask.from_surface(self.image)
 
@@ -63,6 +63,8 @@ class Sprite(pygame.sprite.Sprite):
     def swim_right(self):
         self.rect.move_ip(5, 0)
 
+    def reposition(self, current_x, current_y):
+        self.rect.move_ip((current_x - current_x), -(current_y - 80))
 
 
 

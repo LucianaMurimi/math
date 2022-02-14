@@ -24,3 +24,5 @@ class Bubbles(pygame.sprite.Sprite):
         self.rect.move_ip(0, 5)
         if self.rect.right < 0:
             self.kill()
+
+

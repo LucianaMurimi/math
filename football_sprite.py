@@ -3,20 +3,17 @@ from pygame.locals import *
 from globals import *
 
 
-class BubbleSprite(pygame.sprite.Sprite):
+class FootballSprite(pygame.sprite.Sprite):
     def __init__(self, x, y):
-        super(BubbleSprite, self).__init__()
+        super(FootballSprite, self).__init__()
         # adding all the images to sprite array
         self.images = []
-        self.images.append(pygame.image.load('./assets/images/bubbles/bubble.png'))
-        # self.images.append(pygame.image.load('./assets/images/bubbles/bubble_64px.png'))
-        self.images.append(pygame.image.load('./assets/images/bubbles/bubble_pop_2.png'))
-        # self.images.append(pygame.image.load('./assets/images/bubbles/bubble_pop_3.png'))
-        self.images.append(pygame.image.load('./assets/images/bubbles/bubble_pop_4.png'))
-        # self.images.append(pygame.image.load('./assets/images/bubbles/bubble_pop_5.png'))
-        self.images.append(pygame.image.load('./assets/images/bubbles/bubble_pop_6.png'))
-        self.images.append(pygame.image.load('./assets/images/bubbles/bubble_pop_7.png'))
-        self.images.append(pygame.image.load('./assets/images/bubbles/bubble_pop_8.png'))
+        self.images.append(pygame.image.load('./assets/images/football/football_64.png'))
+
+        self.images.append(pygame.image.load('./assets/images/football/football.png'))
+        self.images.append(pygame.image.load('./assets/images/football/football_2.png'))
+        self.images.append(pygame.image.load('./assets/images/football/football_3.png'))
+        self.images.append(pygame.image.load('./assets/images/football/football_4.png'))
 
         # index value to get the image from the array
         # initially it is 0
@@ -45,4 +42,6 @@ class BubbleSprite(pygame.sprite.Sprite):
 
         return self.index
 
+    def roll_right(self):
+        self.rect.move_ip(5, 0)
 
