@@ -15,6 +15,7 @@ from bee_sprite import *
 from football_sprite import *
 from butterfly_sprite import *
 import time
+from globals import *
 
 pygame.init()
 
@@ -77,7 +78,7 @@ class Game:
         self.standard_one_menu = Menu(("Identifying missing numbers", "Counting objects"),
                                       ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=48)
         self.standard_one_menu_kiswahili = Menu(("Identifying missing numbers", "Counting objects"),
-                                      ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=48)
+                                                ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=48)
         self.display_standard_one_menu = False
         self.display_standard_one_level = 0
         self.numbers_arr = []
@@ -91,7 +92,7 @@ class Game:
 
         self.standard_two_menu = Menu(("Addition", "Subtraction", "Multiplication"),
                                       ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=56)
-        self.display_standard_two_menu = False
+        self.display_screen_two_menu = False
 
         self.shell_menu = Menu(("SIGN IN", "BACK", "EXIT"), ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=42)
         self.shell_menu_check = False
@@ -137,6 +138,7 @@ class Game:
         self.gamestart_audio.play()
 
         self.username = ""
+        self.passwd = ""
 
     def process_events(self, screen):
         # EVENTS
@@ -148,7 +150,7 @@ class Game:
             #####################################################################
             # 2. MOUSE PRESS events
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if not self.display_standard_two_menu and self.shell_rect.collidepoint(pygame.mouse.get_pos()):
+                if not self.display_screen_two_menu and self.shell_rect.collidepoint(pygame.mouse.get_pos()):
                     self.shell_menu_check = not self.shell_menu_check
 
                 if self.shell_menu_check:
@@ -158,12 +160,11 @@ class Game:
 
                 if self.display_sign_in:
                     for btn in sign_in.button_sign_in_list:
-                        if btn.isPressed():
-                            self.username = self.username + btn.get_btn_value()
+                        btn_pressed = btn.isPressed()
 
-                            sign_in.display_sign_in(pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT]),
-                                                    self.username)
-                            pygame.display.flip()
+                        if btn_pressed:
+                            self.username = btn_pressed["username"]
+                            self.passwd = btn_pressed["password"]
 
             #####################################################################
             # 3. KEY DOWN events -> check what screen the key down events are occurring -> update accordingly
@@ -188,8 +189,11 @@ class Game:
                             pygame.time.wait(500)
                         elif self.screen_two.state == 1:
                             self.display_screen_two = False
-                            self.display_standard_two_menu = True
+                            self.display_screen_two_menu = True
                             pygame.time.wait(500)
+                        elif self.screen_two.state == 3:
+                            self.display_screen_two = False
+                            self.display_sign_in = True
 
                         if self.display_screen_two_kiswahili:
                             if self.screen_two_kiswahili.state == 0:
@@ -200,8 +204,12 @@ class Game:
                             elif self.screen_two_kiswahili.state == 1:
                                 self.display_screen_two_kiswahili = False
                                 self.display_screen_two = False
-                                self.display_standard_two_menu = True
+                                self.display_screen_two_menu = True
                                 pygame.time.wait(500)
+                            elif self.screen_two_kiswahili.state == 3:
+                                self.display_screen_two_kiswahili = False
+                                self.display_screen_two = False
+                                self.display_sign_in = True
                             elif self.screen_two_kiswahili.state == 4:
                                 self.language = "English"
                                 self.language_disp = "Kiswahili"
@@ -213,12 +221,13 @@ class Game:
                             self.language = "Kiswahili"
                             self.language_disp = "English"
                             self.screen_two_kiswahili = (Menu(
-                                ("Darasa la Kwanza", "Darasa la Pili", "--------------------", "Ingia", self.language_disp),
+                                ("Darasa la Kwanza", "Darasa la Pili", "--------------------", "Ingia",
+                                 self.language_disp),
                                 ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=46))
                             self.display_screen_two_kiswahili = True
 
                 # if STANDARD ONE MENU SCREEN - level 1 (ordering nos), level 2 (counting objects)
-                if self.display_standard_one_menu:
+                elif self.display_standard_one_menu:
                     if event.key == pygame.K_DOWN:
                         self.standard_one_menu.update(key_press=pygame.K_DOWN, options=1)
                         pygame.display.flip()
@@ -238,7 +247,7 @@ class Game:
                             pygame.time.wait(500)
 
                 # if STANDARD TWO MENU SCREEN - addition, subtraction, multiplication
-                if self.display_standard_two_menu:
+                elif self.display_screen_two_menu:
                     if event.key == pygame.K_DOWN:
                         self.standard_two_menu.update(key_press=pygame.K_DOWN, options=2)
                         pygame.display.flip()
@@ -250,16 +259,15 @@ class Game:
                         if self.standard_two_menu.state == 0:
                             self.operation = "addition"
                             self.set_problem()
-                            self.display_standard_two_menu = False
+                            self.display_screen_two_menu = False
                         elif self.standard_two_menu.state == 1:
                             self.operation = "subtraction"
                             self.set_problem()
-                            self.display_standard_two_menu = False
+                            self.display_screen_two_menu = False
                         elif self.standard_two_menu.state == 2:
-                            print(self.standard_two_menu.state)
                             self.operation = "multiplication"
                             self.set_problem()
-                            self.display_standard_two_menu = False
+                            self.display_screen_two_menu = False
 
             #####################################################################
             # 4. ADDbubble Custom Event
@@ -279,6 +287,11 @@ class Game:
                     if enemy.number == self.problem["result"]:
                         self.score += 5
                         self.sound_1.play()
+
+                        current_x = sprite.rect.x
+                        current_y = sprite.rect.y
+                        sprite.reposition(current_x, current_y)
+
                         self.reset_problem = True
                     else:
                         current_x = sprite.rect.x
@@ -356,30 +369,38 @@ class Game:
 
             if self.display_standard_one_level == 1:
                 self.display_standard_one_level = 0
+                self.display_screen_two = False
                 self.display_standard_one_menu = True
+                self.score = 0
+                self.count = 0
 
-            elif self.display_standard_one_level == 2:
+            if self.display_standard_one_level == 2:
                 self.display_standard_one_level = 0
+                self.display_screen_two = False
                 self.display_standard_one_menu = True
+                self.score = 0
+                self.count = 0
 
-            elif self.display_standard_one_menu:
-                self.display_standard_one_menu = False
-                self.display_screen_two = True
+            if self.display_standard_one_menu or self.display_screen_two_menu:
+                if self.display_standard_one_menu:
+                    self.display_standard_one_menu = False
+                    self.display_screen_two = True
+                elif self.display_screen_two_menu:
+                    self.display_screen_two_menu = False
+                    self.display_screen_two = True
 
-            elif self.display_standard_two_menu:
-                self.display_standard_two_menu = not self.display_standard_two_menu
-                self.display_screen_two = True
+            if self.display_ASD_game_screen:
+                self.display_ASD_game_screen = False
+                self.display_screen_two = False
+                self.display_screen_two_menu = True
+                self.score = 0
+                self.count = 0
 
-            elif self.display_sign_in:
+            if self.display_sign_in:
                 self.display_sign_in = not self.display_sign_in
-
-        # else:
-        #     sprite.swim(pressed_key)
-        #     sprite_group.draw(screen)
-
-        elif self.display_ASD_game_screen:
-            sprite.swim(pressed_key)
-            sprite_group.draw(screen)
+                self.display_screen_two_menu = True
+                self.score = 0
+                self.count = 0
 
         elif self.display_standard_one_level == 1:
             boy_sprite.run(pressed_key)
@@ -388,6 +409,10 @@ class Game:
         elif self.display_standard_one_level == 2:
             bee_sprite.fly(pressed_key)
             bee_sprite_group.draw(screen)
+
+        elif self.display_ASD_game_screen:
+            sprite.swim(pressed_key)
+            sprite_group.draw(screen)
 
         return True
 
@@ -428,7 +453,7 @@ class Game:
         self.num_of_footballs = random.randint(1, 9)
         print("num of footballs: ", self.num_of_footballs)
 
-        pos_x = (SCREEN_WIDTH / 2) - ((self.num_of_footballs * 64) + ((self.num_of_footballs-1) * 16)) / 2
+        pos_x = (SCREEN_WIDTH / 2) - ((self.num_of_footballs * 64) + ((self.num_of_footballs - 1) * 16)) / 2
         for i in range(0, self.num_of_footballs):
             football_sprite_group.add(FootballSprite(pos_x, 300))
             pos_x = pos_x + 64 + 16
@@ -654,6 +679,7 @@ class Game:
                 # set reset_problem True so it can go to the next problem
                 self.reset_problem = True
         self.button_list = []
+
     #############################################################################
 
     def run_logic(self):
@@ -685,6 +711,27 @@ class Game:
 
         #############################################################################
 
+        # STANDARD ONE menu screen
+        elif self.display_standard_one_menu:
+            background.set_background(screen, "menu")
+            time_wait = False
+
+            self.standard_one_menu.display_frame(screen)
+            bubbles.update()
+            # for bubble in bubbles:
+            #     screen.blit(bubble.surf, bubble.rect)
+
+        #############################################################################
+
+        # ASD menu screen
+        elif self.display_screen_two_menu:
+            background.set_background(screen, "menu")
+            time_wait = False
+
+            self.standard_two_menu.display_frame(screen)
+
+        #############################################################################
+
         # screen 2
         elif self.display_screen_two_kiswahili:
             background.set_background(screen, "menu")
@@ -703,27 +750,6 @@ class Game:
 
         #############################################################################
 
-        # STANDARD ONE menu screen
-        elif self.display_standard_one_menu:
-            background.set_background(screen, "menu")
-            time_wait = False
-
-            self.standard_one_menu.display_frame(screen)
-            bubbles.update()
-            # for bubble in bubbles:
-            #     screen.blit(bubble.surf, bubble.rect)
-
-        #############################################################################
-
-        # ASD menu screen
-        elif self.display_standard_two_menu:
-            background.set_background(screen, "menu")
-            time_wait = False
-
-            self.standard_two_menu.display_frame(screen)
-
-        #############################################################################
-
         # Game Over Screen
         elif self.count == 3:
             background.set_background(screen, "screen_1")
@@ -733,7 +759,7 @@ class Game:
             msg_2 = "Your score was " + str(self.score)
             self.display_message(screen, (msg_1, msg_2))
 
-            self.display_standard_two_menu = True
+            self.display_screen_two_menu = True
             self.score = 0
             self.count = 0
 
@@ -746,7 +772,7 @@ class Game:
             background.set_background(screen, "menu")
             time_wait = False
 
-            sign_in.display_sign_in(screen, self.username)
+            sign_in.display_sign_in(screen, self.username, self.passwd)
 
         #############################################################################
         # STANDARD 1 LEVEL 1 Game Screen
@@ -797,7 +823,8 @@ class Game:
             bee_sprite.update()
 
             instruction_font = pygame.font.Font("./assets/fonts/Sniglet-Regular.ttf", 32)
-            label_instruction = instruction_font.render("Pop the bubble with the correct number of balls !", True, (254, 0, 154))
+            label_instruction = instruction_font.render("Pop the bubble with the correct number of balls !", True,
+                                                        (254, 0, 154))
             label_instruction_w = label_instruction.get_width()
 
             pos_x = (SCREEN_WIDTH / 2) - (label_instruction_w / 2)
@@ -850,7 +877,7 @@ class Game:
             screen.blit(label_3, (pos_x + label_1.get_width() + label_2.get_width(), 50))
             screen.blit(label_4, (pos_x + label_1.get_width() + label_2.get_width() + label_3.get_width(), 50))
             screen.blit(label_5, (
-            pos_x + label_1.get_width() + label_2.get_width() + label_3.get_width() + label_4.get_width(), 50))
+                pos_x + label_1.get_width() + label_2.get_width() + label_3.get_width() + label_4.get_width(), 50))
 
             # buttons
             for btn in self.button_list:

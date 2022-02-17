@@ -1,6 +1,8 @@
 import pygame
 from globals import *
+from db import *
 
+db = DB()
 
 class ButtonSignIn(object):
     def __init__(self, x, y, value):
@@ -16,7 +18,16 @@ class ButtonSignIn(object):
             self.value = str(value)
             self.isInt = True
 
-        self.text = self.font.render(self.value, True, BLACK)
+        if self.value == "clear":
+            font = pygame.font.Font("./assets/fonts/Sniglet-Regular.ttf", 16)
+            self.text = font.render(self.value, True, (255, 0, 0))
+
+        elif self.value == "enter":
+            font = pygame.font.Font("./assets/fonts/Sniglet-Regular.ttf", 16)
+            self.text = font.render(self.value, True, (0, 0, 255))
+
+        else:
+            self.text = self.font.render(self.value, True, BLACK)
 
         self.background_color = SKY_BLUE
 
@@ -41,12 +52,30 @@ class ButtonSignIn(object):
         """ Return true if the mouse is on the button """
         pos = pygame.mouse.get_pos()
         if self.rect.collidepoint(pos):
+            global PASSWORD
             global USERNAME
-            USERNAME = USERNAME + self.value
-            print(USERNAME)
-            return USERNAME
-        else:
-            pass
+            global SET_PASSWORD
+
+            if self.value == "clear":
+                if SET_PASSWORD:
+                    PASSWORD = PASSWORD[:-1]
+                else:
+                    USERNAME = USERNAME[:-1]
+            elif self.value == "enter":
+                if USERNAME != "":
+                    SET_PASSWORD = not SET_PASSWORD
+
+                if USERNAME != "" and PASSWORD != "":
+                    res = db.SignIn(USERNAME, PASSWORD)
+                    if res:
+                        table
+            else:
+                if SET_PASSWORD:
+                    PASSWORD = PASSWORD + self.value
+                else:
+                    USERNAME = USERNAME + self.value
+
+            return {"username": USERNAME, "password": PASSWORD}
 
     def set_color(self, color):
         """ Set the background color """

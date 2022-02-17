@@ -1,3 +1,5 @@
+import json
+
 import pygame
 from globals import *
 from buttons_sign_in import *
@@ -28,13 +30,15 @@ class SignIn:
         self.button_k = ButtonSignIn(572, 250, "k")
         self.button_l = ButtonSignIn(640, 250, "l")
 
-        self.button_z = ButtonSignIn(164, 318, "z")
-        self.button_x = ButtonSignIn(232, 318, "x")
-        self.button_c = ButtonSignIn(300, 318, "c")
-        self.button_v = ButtonSignIn(368, 318, "v")
-        self.button_b = ButtonSignIn(436, 318, "b")
-        self.button_n = ButtonSignIn(504, 318, "n")
-        self.button_m = ButtonSignIn(572, 318, "m")
+        self.button_z = ButtonSignIn(96, 318, "z")
+        self.button_x = ButtonSignIn(164, 318, "x")
+        self.button_c = ButtonSignIn(232, 318, "c")
+        self.button_v = ButtonSignIn(300, 318, "v")
+        self.button_b = ButtonSignIn(368, 318, "b")
+        self.button_n = ButtonSignIn(436, 318, "n")
+        self.button_m = ButtonSignIn(504, 318, "m")
+        self.button_backspace = ButtonSignIn(572, 318, "clear")
+        self.button_enter = ButtonSignIn(640, 318, "enter")
 
         self.button_0 = ButtonSignIn(62, 394, 0)
         self.button_1 = ButtonSignIn(130, 394, 1)
@@ -52,15 +56,16 @@ class SignIn:
                                     self.button_a, self.button_s, self.button_d, self.button_f, self.button_g,
                                     self.button_h, self.button_j, self.button_k, self.button_l, self.button_z,
                                     self.button_x, self.button_c, self.button_v, self.button_b, self.button_n,
-                                    self.button_m, self.button_0, self.button_1, self.button_2, self.button_3,
-                                    self.button_4, self.button_5, self.button_6, self.button_7, self.button_8,
-                                    self.button_9]
+                                    self.button_m, self.button_backspace, self.button_enter, self.button_0,
+                                    self.button_1, self.button_2, self.button_3, self.button_4, self.button_5,
+                                    self.button_6, self.button_7, self.button_8, self.button_9]
 
-    def display_sign_in(self, screen, email_input=""):
+    def display_sign_in(self, screen, email_input, passwd_input):
         email_label = self.font.render("Email: ", True, BLACK)
         passwd_label = self.font.render("Password: ", True, BLACK)
 
         email_input_label = self.font.render(email_input, True, BLACK)
+        password_input_label = self.font.render(passwd_input, True, BLACK)
 
         email_width = email_label.get_width()
         passwd_width = passwd_label.get_width()
@@ -73,6 +78,7 @@ class SignIn:
         screen.blit(email_label, (100, 50))
         screen.blit(passwd_label, (100, 50 + email_height))
         screen.blit(email_input_label, (100 + email_width + 20, 50))
+        screen.blit(password_input_label, (100 + passwd_width + 20, 50 + email_height))
 
         for btn in self.button_sign_in_list:
             btn.draw(screen)
