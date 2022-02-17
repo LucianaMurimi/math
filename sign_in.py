@@ -20,15 +20,16 @@ class SignIn:
         self.button_o = ButtonSignIn(606, 182, "o")
         self.button_p = ButtonSignIn(674, 182, "p")
 
-        self.button_a = ButtonSignIn(96, 250, "a")
-        self.button_s = ButtonSignIn(164, 250, "s")
-        self.button_d = ButtonSignIn(232, 250, "d")
-        self.button_f = ButtonSignIn(300, 250, "f")
-        self.button_g = ButtonSignIn(368, 250, "g")
-        self.button_h = ButtonSignIn(436, 250, "h")
-        self.button_j = ButtonSignIn(504, 250, "j")
-        self.button_k = ButtonSignIn(572, 250, "k")
-        self.button_l = ButtonSignIn(640, 250, "l")
+        self.button_a = ButtonSignIn(62, 250, "a")
+        self.button_s = ButtonSignIn(130, 250, "s")
+        self.button_d = ButtonSignIn(198, 250, "d")
+        self.button_f = ButtonSignIn(266, 250, "f")
+        self.button_g = ButtonSignIn(334, 250, "g")
+        self.button_h = ButtonSignIn(402, 250, "h")
+        self.button_j = ButtonSignIn(470, 250, "j")
+        self.button_k = ButtonSignIn(538, 250, "k")
+        self.button_l = ButtonSignIn(606, 250, "l")
+        self.button__ = ButtonSignIn(674, 250, "_")
 
         self.button_z = ButtonSignIn(96, 318, "z")
         self.button_x = ButtonSignIn(164, 318, "x")
@@ -54,7 +55,8 @@ class SignIn:
         self.button_sign_in_list = [self.button_q, self.button_w, self.button_e, self.button_r, self.button_t,
                                     self.button_y, self.button_u, self.button_i, self.button_o, self.button_p,
                                     self.button_a, self.button_s, self.button_d, self.button_f, self.button_g,
-                                    self.button_h, self.button_j, self.button_k, self.button_l, self.button_z,
+                                    self.button_h, self.button_j, self.button_k, self.button_l, self.button__,
+                                    self.button_z,
                                     self.button_x, self.button_c, self.button_v, self.button_b, self.button_n,
                                     self.button_m, self.button_backspace, self.button_enter, self.button_0,
                                     self.button_1, self.button_2, self.button_3, self.button_4, self.button_5,

@@ -16,11 +16,14 @@ from football_sprite import *
 from butterfly_sprite import *
 import time
 from globals import *
+from db import *
+
 
 pygame.init()
 
 # OBJECTS
 background = Background()
+db = DB()
 sprite = Sprite(0, 80)
 screen1_sprite = Sprite(200, 270)
 screen1_bubble_sprite = BubbleSprite(500, 270)
@@ -76,10 +79,12 @@ class Game:
         self.display_screen_two_kiswahili = False
 
         self.standard_one_menu = Menu(("Identifying missing numbers", "Counting objects"),
-                                      ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=48)
-        self.standard_one_menu_kiswahili = Menu(("Identifying missing numbers", "Counting objects"),
-                                                ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=48)
+                                      ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=36)
+
+        self.standard_one_menu_kiswahili = Menu(("Kutambua nambari zinazokosekana", "Kuhesabu vitu"),
+                                                ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=36)
         self.display_standard_one_menu = False
+        self.display_standard_one_menu_kiswahili = False
         self.display_standard_one_level = 0
         self.numbers_arr = []
         self.missing_num = None
@@ -92,7 +97,10 @@ class Game:
 
         self.standard_two_menu = Menu(("Addition", "Subtraction", "Multiplication"),
                                       ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=56)
+        self.standard_two_menu_kiswahili = Menu(("Nyongeza", "Kutoa", "Kuzidisha"),
+                                      ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=56)
         self.display_screen_two_menu = False
+        self.display_standard_two_menu_kiswahili = False
 
         self.shell_menu = Menu(("SIGN IN", "BACK", "EXIT"), ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=42)
         self.shell_menu_check = False
@@ -199,12 +207,12 @@ class Game:
                             if self.screen_two_kiswahili.state == 0:
                                 self.display_screen_two_kiswahili = False
                                 self.display_screen_two = False
-                                self.display_standard_one_menu = True
+                                self.display_standard_one_menu_kiswahili = True
                                 pygame.time.wait(500)
                             elif self.screen_two_kiswahili.state == 1:
                                 self.display_screen_two_kiswahili = False
                                 self.display_screen_two = False
-                                self.display_screen_two_menu = True
+                                self.display_standard_two_menu_kiswahili = True
                                 pygame.time.wait(500)
                             elif self.screen_two_kiswahili.state == 3:
                                 self.display_screen_two_kiswahili = False
@@ -227,47 +235,72 @@ class Game:
                             self.display_screen_two_kiswahili = True
 
                 # if STANDARD ONE MENU SCREEN - level 1 (ordering nos), level 2 (counting objects)
-                elif self.display_standard_one_menu:
+                elif self.display_standard_one_menu or self.display_standard_one_menu_kiswahili:
                     if event.key == pygame.K_DOWN:
-                        self.standard_one_menu.update(key_press=pygame.K_DOWN, options=1)
-                        pygame.display.flip()
+                        if self.display_standard_one_menu:
+                            self.standard_one_menu.update(key_press=pygame.K_DOWN, options=1)
+                            pygame.display.flip()
+                        else:
+                            self.standard_one_menu_kiswahili.update(key_press=pygame.K_DOWN, options=1)
+                            pygame.display.flip()
                     elif event.key == pygame.K_UP:
-                        self.standard_one_menu.update(key_press=pygame.K_UP, options=1)
-                        pygame.display.flip()
+                        if self.display_standard_one_menu:
+                            self.standard_one_menu.update(key_press=pygame.K_UP, options=1)
+                            pygame.display.flip()
+                        else:
+                            self.standard_one_menu_kiswahili.update(key_press=pygame.K_UP, options=1)
+                            pygame.display.flip()
                     elif event.key == pygame.K_KP_ENTER:  # enter either level 1 or level 2
-                        if self.standard_one_menu.state == 0:
+                        if self.standard_one_menu.state == 0 or self.standard_one_menu_kiswahili.state == 0:
                             self.display_standard_one_level = 1
                             self.set_std1_level1_problem()
                             self.display_standard_one_menu = False
+                            self.display_standard_one_menu_kiswahili = False
                             pygame.time.wait(500)
-                        elif self.standard_one_menu.state == 1:
+
+                        elif self.standard_one_menu.state == 1 or self.standard_one_menu_kiswahili.state == 1:
                             self.display_standard_one_level = 2
                             self.set_std1_level2_problem()
                             self.display_standard_one_menu = False
+                            self.display_standard_one_menu_kiswahili = False
                             pygame.time.wait(500)
 
                 # if STANDARD TWO MENU SCREEN - addition, subtraction, multiplication
-                elif self.display_screen_two_menu:
+                elif self.display_screen_two_menu or self.display_standard_two_menu_kiswahili:
                     if event.key == pygame.K_DOWN:
-                        self.standard_two_menu.update(key_press=pygame.K_DOWN, options=2)
-                        pygame.display.flip()
+                        if self.display_screen_two_menu:
+                            self.standard_two_menu.update(key_press=pygame.K_DOWN, options=2)
+                            pygame.display.flip()
+                        else:
+                            self.standard_two_menu_kiswahili.update(key_press=pygame.K_DOWN, options=2)
+                            pygame.display.flip()
                     elif event.key == pygame.K_UP:
-                        self.standard_two_menu.update(key_press=pygame.K_UP, options=2)
-                        pygame.display.flip()
+                        if self.display_screen_two_menu:
+                            self.standard_two_menu.update(key_press=pygame.K_UP, options=2)
+                            pygame.display.flip()
+                        else:
+                            self.standard_two_menu_kiswahili.update(key_press=pygame.K_UP, options=2)
+                            pygame.display.flip()
 
                     elif event.key == pygame.K_KP_ENTER:
-                        if self.standard_two_menu.state == 0:
+                        if self.standard_two_menu.state == 0 or self.standard_two_menu_kiswahili.state == 0:
                             self.operation = "addition"
                             self.set_problem()
                             self.display_screen_two_menu = False
-                        elif self.standard_two_menu.state == 1:
+                            self.display_standard_two_menu_kiswahili = False
+
+                        elif self.standard_two_menu.state == 1 or self.standard_two_menu_kiswahili.state == 1:
                             self.operation = "subtraction"
                             self.set_problem()
                             self.display_screen_two_menu = False
-                        elif self.standard_two_menu.state == 2:
+                            self.display_standard_two_menu_kiswahili = False
+
+                        elif self.standard_two_menu.state == 2 or self.standard_two_menu_kiswahili.state == 2:
                             self.operation = "multiplication"
                             self.set_problem()
                             self.display_screen_two_menu = False
+                            self.display_standard_two_menu_kiswahili = False
+
 
             #####################################################################
             # 4. ADDbubble Custom Event
@@ -286,6 +319,10 @@ class Game:
 
                     if enemy.number == self.problem["result"]:
                         self.score += 5
+                        global LEVEL2_SCORE
+                        LEVEL2_SCORE = LEVEL2_SCORE + 5
+                        if TABLENAME != "":
+                            db.upload(0, self.score)
                         self.sound_1.play()
 
                         current_x = sprite.rect.x
@@ -303,6 +340,7 @@ class Game:
             #####################################################################
             # 6. screen 1 COLLISION EVENT
             ## STANDARD 1 LEVEL 1
+            global LEVEL1_SCORE
             if self.display_standard_one_level == 1:
                 enemy_collisions = pygame.sprite.spritecollide(boy_sprite, enemies, pygame.sprite.collide_mask)
                 for enemy in enemy_collisions:
@@ -311,6 +349,10 @@ class Game:
 
                     if enemy.number == self.missing_num:
                         self.score += 5
+
+                        LEVEL1_SCORE = LEVEL1_SCORE + 5
+                        if TABLENAME != "":
+                            db.upload(self.score, 0)
                         self.wow.play()
 
                         enemy.burst.kicking(current_x, self.pos_x_missing, current_y)
@@ -347,6 +389,7 @@ class Game:
 
                     self.reset_problem = True
 
+            ## STANDARD 1 LEVEL 2
             if self.display_standard_one_level == 2:
                 enemy_collisions = pygame.sprite.spritecollide(bee_sprite, enemies, pygame.sprite.collide_mask)
                 for enemy in enemy_collisions:
@@ -355,6 +398,9 @@ class Game:
 
                     if enemy.number == self.num_of_footballs:
                         self.score += 5
+                        LEVEL1_SCORE = LEVEL1_SCORE + 5
+                        if TABLENAME != "":
+                            db.upload(self.score, 0)
                         self.wow.play()
                         self.roll = True
                     else:
@@ -401,6 +447,9 @@ class Game:
                 self.display_screen_two_menu = True
                 self.score = 0
                 self.count = 0
+
+            if SIGN_IN_EXIT:
+                self.display_sign_in = False
 
         elif self.display_standard_one_level == 1:
             boy_sprite.run(pressed_key)
@@ -721,6 +770,11 @@ class Game:
             # for bubble in bubbles:
             #     screen.blit(bubble.surf, bubble.rect)
 
+        elif self.display_standard_one_menu_kiswahili:
+            background.set_background(screen, "menu")
+            time_wait = False
+
+            self.standard_one_menu_kiswahili.display_frame(screen)
         #############################################################################
 
         # ASD menu screen
@@ -739,6 +793,11 @@ class Game:
 
             self.screen_two_kiswahili.display_frame(screen)
 
+        elif self.display_standard_two_menu_kiswahili:
+            background.set_background(screen, "menu")
+            time_wait = False
+            self.standard_two_menu_kiswahili.display_frame(screen)
+
         elif self.display_screen_two:
             background.set_background(screen, "menu")
             time_wait = False
@@ -755,8 +814,13 @@ class Game:
             background.set_background(screen, "screen_1")
 
             # if the count gets to 5 that means that the game is over
-            msg_1 = "Well Done!!!"
-            msg_2 = "Your score was " + str(self.score)
+            if self.language == "English":
+                msg_1 = "Well Done!!!"
+                msg_2 = "Your score is " + str(self.score)
+            elif self.language == "Kiswahili":
+                msg_1 = "Umefanya Vizuri!!!"
+                msg_2 = "Alama yako ni " + str(self.score)
+
             self.display_message(screen, (msg_1, msg_2))
 
             self.display_screen_two_menu = True
@@ -767,21 +831,20 @@ class Game:
             time_wait = True
 
         #############################################################################
-        # Sign In Screen
-        elif self.display_sign_in:
-            background.set_background(screen, "menu")
-            time_wait = False
-
-            sign_in.display_sign_in(screen, self.username, self.passwd)
-
-        #############################################################################
         # STANDARD 1 LEVEL 1 Game Screen
         elif self.display_standard_one_level == 1:
             background.set_background(screen, "standard1_level1")
             time_wait = False
 
             instruction_font = pygame.font.Font("./assets/fonts/Sniglet-Regular.ttf", 32)
-            label_instruction = instruction_font.render("Kick the ball with the missing number !", True, (254, 0, 154))
+
+            if self.language == "English":
+                label_instruction = instruction_font.render("Kick the ball with the missing number !", True,
+                                                            (254, 0, 154))
+            elif self.language == "Kiswahili":
+                label_instruction = instruction_font.render("Piga mpira ulio nambari inayokosekana !", True,
+                                                            (254, 0, 154))
+
             label_instruction_w = label_instruction.get_width()
 
             pos_x = (SCREEN_WIDTH / 2) - (label_instruction_w / 2)
@@ -823,8 +886,14 @@ class Game:
             bee_sprite.update()
 
             instruction_font = pygame.font.Font("./assets/fonts/Sniglet-Regular.ttf", 32)
-            label_instruction = instruction_font.render("Pop the bubble with the correct number of balls !", True,
+
+            if self.language == "English":
+                label_instruction = instruction_font.render("Pop the bubble with the correct number of balls !", True,
                                                         (254, 0, 154))
+            elif self.language == "Kiswahili":
+                label_instruction = instruction_font.render("Chopa kiputo kilicho idadi sahihi ya mipira !", True,
+                                                            (254, 0, 154))
+
             label_instruction_w = label_instruction.get_width()
 
             pos_x = (SCREEN_WIDTH / 2) - (label_instruction_w / 2)
@@ -857,7 +926,7 @@ class Game:
         #############################################################################
 
         # 3. ASD Game Screen
-        else:
+        elif self.display_ASD_game_screen:
             background.set_background(screen, "ASD_game_screen")
             # labels for each number
             label_1 = self.font.render(str(self.problem["num1"]), True, (127, 81, 0))
@@ -898,6 +967,13 @@ class Game:
                 self.shell_menu.display_frame(screen)
                 pygame.display.update()
 
+        #############################################################################
+        # Sign In Screen
+        elif self.display_sign_in:
+            background.set_background(screen, "menu")
+            time_wait = False
+
+            sign_in.display_sign_in(screen, self.username, self.passwd)
         pygame.display.flip()
 
         #############################################################################

@@ -68,7 +68,9 @@ class ButtonSignIn(object):
                 if USERNAME != "" and PASSWORD != "":
                     res = db.SignIn(USERNAME, PASSWORD)
                     if res:
-                        table
+                        # db.upload()
+                        global SIGN_IN_EXIT
+                        SIGN_IN_EXIT = True
             else:
                 if SET_PASSWORD:
                     PASSWORD = PASSWORD + self.value
