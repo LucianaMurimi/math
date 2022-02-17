@@ -21,8 +21,8 @@ pygame.init()
 # OBJECTS
 background = Background()
 sprite = Sprite(0, 80)
-screen1_sprite = Sprite(0, 270)
-screen1_bubble_sprite = BubbleSprite(750, 270)
+screen1_sprite = Sprite(200, 270)
+screen1_bubble_sprite = BubbleSprite(500, 270)
 boy_sprite = BoySprite(0, 260)
 bee_sprite = BeeSprite(0, 228)
 butterfly_sprite = ButterflySprite(SCREEN_WIDTH / 2 - 50, 360)
@@ -64,13 +64,20 @@ class Game:
         self.screen_one = ScreenOne()
         self.display_screen_one = True
 
-        # menu
-        self.screen_two = Menu(("Standard 1", "Standard 2"),
-                               ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=64)
-        self.display_screen_two = True
+        self.language_disp = "Kiswahili"
+        self.language = "English"
 
-        self.standard_one_menu = Menu(("Level 1", "Level 2"),
-                                      ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=56)
+        # menu
+        self.screen_two = Menu(("Standard 1", "Standard 2", "--------------------", "Sign In", self.language_disp),
+                               ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=46)
+        self.display_screen_two = True
+        self.screen_two_kiswahili = None
+        self.display_screen_two_kiswahili = False
+
+        self.standard_one_menu = Menu(("Identifying missing numbers", "Counting objects"),
+                                      ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=48)
+        self.standard_one_menu_kiswahili = Menu(("Identifying missing numbers", "Counting objects"),
+                                      ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=48)
         self.display_standard_one_menu = False
         self.display_standard_one_level = 0
         self.numbers_arr = []
@@ -115,17 +122,19 @@ class Game:
         self.shell_rect = pygame.Rect(SCREEN_WIDTH - 64 - 36, 24, 72, 72)
 
         # sound effects
-        pygame.mixer.pre_init(44100, -16, 2, 2048)
-        pygame.mixer.init()
-        pygame.mixer.music.load('./assets/audio/game start.mp3')
-        pygame.mixer.music.play(1)
+        # pygame.mixer.pre_init(44100, -16, 2, 2048)
+        # pygame.mixer.init()
+        # pygame.mixer.music.load("./assets/audio/intro.mp3")
+        # pygame.mixer.music.play(1)
 
         self.sound_1 = pygame.mixer.Sound("./assets/audio/item1.ogg")
         self.sound_2 = pygame.mixer.Sound("./assets/audio/item2.ogg")
-        self.bubble_burst = pygame.mixer.Sound("./assets/audio/bubble_burst.mp3")
         self.gamestart_audio = pygame.mixer.Sound("./assets/audio/game start.mp3")
+        self.bubble_burst = pygame.mixer.Sound("./assets/audio/bubble_burst.mp3")
         self.gameover_audio = pygame.mixer.Sound("./assets/audio/gameover.wav")
         self.wow = pygame.mixer.Sound("./assets/audio/wow.mp3")
+
+        self.gamestart_audio.play()
 
         self.username = ""
 
@@ -160,12 +169,16 @@ class Game:
             # 3. KEY DOWN events -> check what screen the key down events are occurring -> update accordingly
             if event.type == pygame.KEYDOWN:
                 # if SCREEN TWO - standard 1, standard 2
-                if self.display_screen_two:
+                if self.display_screen_two or self.display_screen_two_kiswahili:
                     if event.key == pygame.K_DOWN:
-                        self.screen_two.update(key_press=pygame.K_DOWN, options=1)
+                        self.screen_two.update(key_press=pygame.K_DOWN, options=4)
+                        if self.display_screen_two_kiswahili:
+                            self.screen_two_kiswahili.update(key_press=pygame.K_DOWN, options=4)
                         pygame.display.flip()
                     elif event.key == pygame.K_UP:
-                        self.screen_two.update(key_press=pygame.K_UP, options=1)
+                        self.screen_two.update(key_press=pygame.K_UP, options=4)
+                        if self.display_screen_two_kiswahili:
+                            self.screen_two_kiswahili.update(key_press=pygame.K_UP, options=4)
                         pygame.display.flip()
 
                     elif event.key == pygame.K_KP_ENTER:  # enter either standard 1 or standard 2 level
@@ -177,6 +190,32 @@ class Game:
                             self.display_screen_two = False
                             self.display_standard_two_menu = True
                             pygame.time.wait(500)
+
+                        if self.display_screen_two_kiswahili:
+                            if self.screen_two_kiswahili.state == 0:
+                                self.display_screen_two_kiswahili = False
+                                self.display_screen_two = False
+                                self.display_standard_one_menu = True
+                                pygame.time.wait(500)
+                            elif self.screen_two_kiswahili.state == 1:
+                                self.display_screen_two_kiswahili = False
+                                self.display_screen_two = False
+                                self.display_standard_two_menu = True
+                                pygame.time.wait(500)
+                            elif self.screen_two_kiswahili.state == 4:
+                                self.language = "English"
+                                self.language_disp = "Kiswahili"
+                                self.display_screen_two_kiswahili = False
+                                self.screen_two.state = 0
+                                self.display_screen_two = True
+
+                        elif self.screen_two.state == 4:
+                            self.language = "Kiswahili"
+                            self.language_disp = "English"
+                            self.screen_two_kiswahili = (Menu(
+                                ("Darasa la Kwanza", "Darasa la Pili", "--------------------", "Ingia", self.language_disp),
+                                ttf_font="./assets/fonts/Sniglet-Regular.ttf", font_size=46))
+                            self.display_screen_two_kiswahili = True
 
                 # if STANDARD ONE MENU SCREEN - level 1 (ordering nos), level 2 (counting objects)
                 if self.display_standard_one_menu:
@@ -250,6 +289,7 @@ class Game:
 
             #####################################################################
             # 6. screen 1 COLLISION EVENT
+            ## STANDARD 1 LEVEL 1
             if self.display_standard_one_level == 1:
                 enemy_collisions = pygame.sprite.spritecollide(boy_sprite, enemies, pygame.sprite.collide_mask)
                 for enemy in enemy_collisions:
@@ -301,6 +341,10 @@ class Game:
                     enemy.bursting.draw(screen)
 
                     if enemy.number == self.num_of_footballs:
+                        self.score += 5
+                        self.wow.play()
+                        self.roll = True
+                    else:
                         self.roll = True
 
         #####################################################################
@@ -393,16 +437,16 @@ class Game:
 
     #############################################################################
     def addition(self):
-        a = random.randint(0, 100)
-        b = random.randint(0, 100)
+        a = random.randint(0, 10)
+        b = random.randint(0, 10)
         self.problem["num1"] = a
         self.problem["num2"] = b
         self.problem["result"] = a + b
         self.operation = "addition"
 
     def subtraction(self):
-        a = random.randint(0, 100)
-        b = random.randint(0, 100)
+        a = random.randint(0, 10)
+        b = random.randint(0, 10)
         if a > b:
             self.problem["num1"] = a
             self.problem["num2"] = b
@@ -414,8 +458,8 @@ class Game:
         self.operation = "subtraction"
 
     def multiplication(self):
-        a = random.randint(0, 12)
-        b = random.randint(0, 12)
+        a = random.randint(0, 10)
+        b = random.randint(0, 10)
         self.problem["num1"] = a
         self.problem["num2"] = b
         self.problem["result"] = a * b
@@ -541,6 +585,8 @@ class Game:
     def get_level2_button_list(self):
         # return a list with three buttons
         button_list = []
+        numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        numbers.remove(self.num_of_footballs)
 
         # assign one of the buttons with the right answer
         choice = random.randint(1, 3)
@@ -550,38 +596,38 @@ class Game:
         height = 100
 
         pos_x = random.randint(100, 250)
-        pos_y = random.randint(0, 150)
+        pos_y = random.randint(0, 100)
 
         if choice == 1:
             btn = Button(pos_x, pos_y, width, height, self.num_of_footballs)
             button_list.append(btn)
             enemies.add(btn)
         else:
-            btn = Button(pos_x, pos_y, width, height, random.randint(0, 9))
+            btn = Button(pos_x, pos_y, width, height, numbers[random.randint(0, 8)])
             button_list.append(btn)
             enemies.add(btn)
 
         pos_x = random.randint(350, 450)
-        pos_y = random.randint(0, 150)
+        pos_y = random.randint(0, 100)
 
         if choice == 2:
             btn = Button(pos_x, pos_y, width, height, self.num_of_footballs)
             button_list.append(btn)
             enemies.add(btn)
         else:
-            btn = Button(pos_x, pos_y, width, height, random.randint(0, 9))
+            btn = Button(pos_x, pos_y, width, height, numbers[random.randint(0, 8)])
             button_list.append(btn)
             enemies.add(btn)
 
         pos_x = random.randint(550, 700)
-        pos_y = random.randint(0, 150)
+        pos_y = random.randint(0, 100)
 
         if choice == 3:
             btn = Button(pos_x, pos_y, width, height, self.num_of_footballs)
             button_list.append(btn)
             enemies.add(btn)
         else:
-            btn = Button(pos_x, pos_y, width, height, random.randint(0, 9))
+            btn = Button(pos_x, pos_y, width, height, numbers[random.randint(0, 8)])
             button_list.append(btn)
             enemies.add(btn)
 
@@ -624,8 +670,6 @@ class Game:
         if self.display_screen_one:
             background.set_background(screen, "screen_1")
             time_wait = False
-            # self.gamestart_audio.play()
-
             self.screen_one.display_screen_one(screen)
 
             screen1_sprite_group.draw(screen)
@@ -634,6 +678,7 @@ class Game:
             screen1_sprite_group.update()
             screen1_sprite.swim_right()
             screen1_bubble_sprite.rect.move_ip(-5, 0)
+            screen1_bubble_sprite.update()
 
             if pygame.sprite.spritecollide(screen1_sprite, screen1_bubble_sprite_group, pygame.sprite.collide_mask):
                 self.display_screen_one = False
@@ -641,6 +686,12 @@ class Game:
         #############################################################################
 
         # screen 2
+        elif self.display_screen_two_kiswahili:
+            background.set_background(screen, "menu")
+            time_wait = False
+
+            self.screen_two_kiswahili.display_frame(screen)
+
         elif self.display_screen_two:
             background.set_background(screen, "menu")
             time_wait = False
@@ -675,10 +726,7 @@ class Game:
 
         # Game Over Screen
         elif self.count == 3:
-
-            bubbles.update()
-            for bubble in bubbles:
-                screen.blit(bubble.surf, bubble.rect)
+            background.set_background(screen, "screen_1")
 
             # if the count gets to 5 that means that the game is over
             msg_1 = "Well Done!!!"
@@ -734,6 +782,7 @@ class Game:
 
             boy_sprite_group.draw(screen)
             boy_sprite_group.update()
+
         #############################################################################
 
         # STANDARD 1 LEVEL 2 Game Screen
@@ -747,8 +796,8 @@ class Game:
             bee_sprite_group.draw(screen)
             bee_sprite.update()
 
-            instruction_font = pygame.font.Font("./assets/fonts/Sniglet-Regular.ttf", 36)
-            label_instruction = instruction_font.render("Count the number of balls !", True, (254, 0, 154))
+            instruction_font = pygame.font.Font("./assets/fonts/Sniglet-Regular.ttf", 32)
+            label_instruction = instruction_font.render("Pop the bubble with the correct number of balls !", True, (254, 0, 154))
             label_instruction_w = label_instruction.get_width()
 
             pos_x = (SCREEN_WIDTH / 2) - (label_instruction_w / 2)
@@ -835,7 +884,7 @@ class Game:
                 self.count += 1
                 self.reset_problem = False
             elif self.display_standard_one_level == 1:
-                pygame.time.wait(1000)
+                pygame.time.wait(2000)
                 self.set_std1_level1_problem()
                 self.count += 1
                 self.reset_problem = False

@@ -4,8 +4,8 @@ from globals import *
 
 class Menu(object):
     state = -1
-    text_colors = [(254, 0, 154), (255, 165, 0), (255, 255, 0)]
-    select_color = (255, 255, 255)
+    text_colors = [(254, 0, 154), (255, 165, 0), (252, 252, 252), (117, 0, 92), (255, 255, 0)]
+    select_color = (0, 255, 0)
 
     def __init__(self, menu_items, ttf_font=None, font_size=24):
         self.menu_items = menu_items

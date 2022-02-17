@@ -53,5 +53,3 @@ class BallSprite(pygame.sprite.Sprite):
         while ball_x < SCREEN_WIDTH:
             self.rect.move_ip(ball_x + 5, 0)
             ball_x = self.rect.x
-            # pygame.display.update()
-            # pygame.display.flip()
